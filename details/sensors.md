@@ -1,0 +1,81 @@
+---
+description: YAMS Supports simulation really well, but my sensors don't.
+icon: lightbulb-exclamation-on
+---
+
+# Sensors
+
+## What is a `Sensor`?
+
+A `Sensor` is a wrapper around what would be a real sensor on your robot, like a `CanandColor`, beam break, `CANRange`, `LaserCAN`, or anything else! While some of these have really good simulation capabilities; others have no simulation capabilities.
+
+Sensors essentially report back primitive values. Sometimes we know the sensor should trip at a certain time during the match, like autonomous, or under certain conditions like game piece trade offs or intaking for a second or more. Sometimes we want to trigger the sensor ourselves too!
+
+## How do I create a `Sensor`?
+
+{% hint style="info" %}
+Using a `Sensor` wrapper will NEVER be as fast or efficient as using the original input.
+{% endhint %}
+
+You can create a sensor using `SensorConfig` which is where you define the Sensor name, and fields.
+
+```java
+private DigitalInput dio = new DigitalInput(0); // Standard DIO
+private final Sensor coralSensor = new SensorConfig("CoralDetectorBeamBreak") // Name of the sensor 
+  .withField("Beam", dio::get, false) // Add a Field to the sensor named "Beam" whose value is dio.get() and defaults to false
+  .withSimulatedValue("Beam", Seconds.of(3), Seconds.of(4), true) // Change the "Beam" field to true between 3s and 4s into a match
+  .withSimulatedValue("Beam",()->arm.isNear(Degrees.of(40), Degrees.of(2)), true) // Change "Beam" field to true when the arm is near 40deg +- 2deg
+  .getSensor(); // Get the sensor.
+```
+
+You can use `int`, `long`, `double`, or `bool` as sensor field values.
+
+## How do I add simulated values to a sensor?
+
+You can add simulated values to an existing `Sensor` using `Sensor.addSimTrigger` like below.
+
+<pre class="language-java"><code class="lang-java">private DigitalInput dio = new DigitalInput(0); // Standard DIO
+private final Sensor coralSensor = new SensorConfig("CoralDetectorBeamBreak") // Name of the sensor 
+  .withField("Beam", dio::get, false) // Add a Field to the sensor named "Beam" whose value is dio.get() and defaults to false
+  .withSimulatedValue("Beam", Seconds.of(3), Seconds.of(4), true) // Change the "Beam" field to true between 3s and 4s into a match
+  .getSensor(); // Get the sensor.
+
+...
+<strong>coralSensor.addSimTrigger("Beam",()->arm.isNear(Degrees.of(40), Degrees.of(2)), true); // Change "Beam" field to true when the arm is near 40deg +- 2deg
+</strong></code></pre>
+
+## What does this look like?
+
+<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+
+The circled value changes when the Arm is near 40deg +-2 deg. You can also change it in the Simulation GUI manually.
+
+## How do I use the value from a `Sensor`?
+
+{% hint style="danger" %}
+The sensor field value will only automatically update if the sensor is checked!
+{% endhint %}
+
+Instead of doing `dio.get()` in the example, you would have to do `coralSensor.getAsBoolean("Beam")` like the example below.&#x20;
+
+<pre class="language-java"><code class="lang-java">public boolean getBeamBreak()
+{
+  // return dio.get() // Will not work because the value is not modified by Sensor or automatically updated.
+<strong>  return coralSensor.getAsBoolean("Beam");
+</strong>}
+</code></pre>
+
+## How do I simulate the sensor value?
+
+You can set the sensor value manually by getting the field (`.getField`) from a sensor and calling the `.set` function. It will overwrite the previous value of the sensor field until its changed from glass or via `.set` again.
+
+{% hint style="info" %}
+This will only change the sensor value when running under simulations. It does not affect the real value whenr unning on the robot.
+{% endhint %}
+
+```java
+public void setBeamBreakWhenArmIsLow()
+{
+    new Trigger(arm::isLow).onTrue(Commands.run(()->coralSensor.getField("Beam").set(true)));
+}
+```
