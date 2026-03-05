@@ -9,6 +9,10 @@ YAMS swerve consists of three main components:
 - `SwerveDrive` - The complete drive system managing all modules
 - `SwerveInputStream` - Helper for converting controller inputs to chassis speeds
 
+{% hint style="warning" %}
+**Simulation Processing Requirements**: A swerve drive in YAMS simulates **each motor individually**. With 4 modules containing 2 motors each, that's 8 `SmartMotorController` instances all running physics simulation. This provides highly accurate simulation but requires more processing power than simplified kinematic-only simulations. If you experience performance issues in simulation, consider reducing telemetry verbosity or running on a more powerful machine.
+{% endhint %}
+
 ## Creating a Swerve Module
 
 Each swerve module requires two `SmartMotorController`s (drive and azimuth) and a `SwerveModuleConfig`:

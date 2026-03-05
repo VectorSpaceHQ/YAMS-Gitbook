@@ -877,7 +877,12 @@ public class ArmSubsystem extends SubsystemBase {
 }
 ```
 
-This pattern is simpler but doesn't support log replay. Choose based on your team's needs.
+This pattern is simpler and **does support log replay**, but with a key difference: during replay, the full YAMS simulation runs alongside the logged data. This means:
+
+- **Pro**: You get full simulation behavior during replay, which can help debug physics-related issues
+- **Con**: Replay requires more processing power since every `SmartMotorController` and Mechanism simulates its physics
+
+Choose the IO layer pattern if you need lightweight replay; choose this direct pattern if you prefer simplicity and don't mind the extra processing during replay.
 
 ## Benefits of YAMS + AdvantageKit
 
