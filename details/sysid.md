@@ -508,6 +508,102 @@ Both approaches produce compatible log files that work with the WPILib SysId ana
 
 ---
 
+## REV SysId with Status Logger
+
+When using REV motor controllers (SPARK MAX, SPARK Flex), YAMS leverages the **REV Status Logger** to capture high-quality CAN status frame data. This runs automatically in the background and can provide better data than the standard WPILib DataLog approach.
+
+{% embed url="https://docs.revrobotics.com/revlib/logs" %}
+
+### How Status Logger Works
+
+Status Logger is **enabled by default** in REVLib 2026+ and requires no setup. When you run SysId tests with REV motor controllers:
+
+1. The standard WPILib `.wpilog` file is written to the roboRIO (usable directly in SysId)
+2. A separate `.revlog` file is also written, containing raw CAN status frames with higher fidelity
+
+{% hint style="info" %}
+**Do I need the `.revlog` file?**
+
+The standard `.wpilog` file from your SysId routine **may work fine** for analysis. However, the `.revlog` file captures raw CAN data at a higher rate and avoids timing issues from the robot loop. For the best results, especially if you encounter issues with your initial analysis, extract and convert the `.revlog` file.
+{% endhint %}
+
+### Log File Locations
+
+Status Logger saves `.revlog` files to:
+
+| Storage | Path |
+|---------|------|
+| **roboRIO internal** | `/home/lvuser/logs/` |
+| **USB drive** (recommended) | `/u/logs/` |
+
+{% hint style="warning" %}
+It is recommended to insert an external USB drive for storing `.revlog` files. This reduces clutter on the roboRIO and makes file retrieval easier.
+{% endhint %}
+
+### Retrieving `.revlog` Files
+
+**From roboRIO internal storage:**
+
+Use FTP to access files at `/home/lvuser/logs/`. See the [WPILib FTP documentation](https://docs.wpilib.org/en/stable/docs/software/roborio-info/roborio-ftp.html) for details.
+
+**From USB drive:**
+
+Either access the `/u/logs/` directory with the flash drive plugged into the roboRIO, or simply unplug the USB drive and insert it into your computer.
+
+### Converting `.revlog` to `.wpilog`
+
+`.revlog` files must be converted before use in SysId. There are two methods:
+
+#### Method 1: AdvantageScope (Recommended)
+
+1. Open **AdvantageScope**
+2. Open your `.revlog` file directly
+3. AdvantageScope automatically converts it to `.wpilog` format
+4. Export as `.wpilog` if needed for SysId
+
+{% hint style="success" %}
+AdvantageScope is the easiest method and handles the conversion automatically when you open the file.
+{% endhint %}
+
+#### Method 2: revlog-converter CLI
+
+Use the `revlog-converter` NPM package for command-line conversion:
+
+```bash
+# Install globally
+npm install -g revlog-converter
+
+# Convert a file
+revlog-converter mylog.revlog --output mylog.wpilog
+```
+
+### Manual Logging Control
+
+If you need precise control over when logging occurs (e.g., only during SysId tests), you can disable auto-logging:
+
+```java
+import com.revrobotics.util.StatusLogger;
+
+@Override
+public void robotInit() {
+  // Disable automatic logging - must be called before any REVLib device is created
+  StatusLogger.disableAutoLogging();
+}
+
+// Start logging when running SysId
+public Command sysIdWithLogging() {
+  return Commands.runOnce(StatusLogger::start)
+      .andThen(mechanism.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4)))
+      .finallyDo(() -> StatusLogger.stop());
+}
+```
+
+{% hint style="warning" %}
+`disableAutoLogging()` must be called **before** any REVLib device object is created (e.g., before constructing any `SparkMax` or `SparkFlex`). The recommended placement is as the first line in `robotInit()`.
+{% endhint %}
+
+---
+
 ## CTRE SysId with Signal Logger
 
 When using CTRE motor controllers (TalonFX, TalonFXS), YAMS leverages the **Phoenix 6 Signal Logger** instead of WPILib's DataLog. This provides several advantages:
@@ -632,11 +728,12 @@ The Signal Logger automatically captures `Position`, `Velocity`, and `MotorVolta
 
 | Aspect | CTRE (TalonFX) | REV (SparkMax/Flex) |
 |--------|----------------|---------------------|
-| **Logging** | Phoenix Signal Logger (`.hoot`) | WPILib DataLog (`.wpilog`) |
+| **Primary Logging** | Phoenix Signal Logger (`.hoot`) | WPILib DataLog (`.wpilog`) + Status Logger (`.revlog`) |
 | **Log Callback** | `null` (automatic) | Manual logging required |
 | **State Logging** | `SignalLogger.writeString()` | Default WPILib logger |
-| **Conversion** | Requires Tuner X or owlet | Direct `.wpilog` output |
-| **Signal Quality** | Higher (bypasses CAN latency) | Standard (20ms loop) |
+| **Conversion Required** | Yes - Tuner X or owlet | Optional - `.wpilog` works, `.revlog` is better |
+| **Signal Quality** | Higher (bypasses CAN latency) | Standard loop or higher with `.revlog` |
+| **Setup Required** | Must start/stop SignalLogger | Status Logger runs automatically |
 
 ---
 
@@ -646,5 +743,6 @@ The Signal Logger automatically captures `Position`, `Velocity`, and `MotorVolta
 * [How to run SysId on an Elevator](../how-to/how-to-run-sysid-on-a-elevator.md)
 * [How do I control a Mechanism without a Mechanism Class?](../how-to/how-do-i-control-a-mechanism-without-a-mechanism-class.md)
 * [WPILib SysId Documentation](https://docs.wpilib.org/en/stable/docs/software/advanced-controls/system-identification/index.html)
+* [REV Status Logger Documentation](https://docs.revrobotics.com/revlib/logs)
 * [CTRE Phoenix 6 SysId Integration](https://v6.docs.ctr-electronics.com/en/stable/docs/api-reference/wpilib-integration/sysid-integration/index.html)
 * [CTRE Extracting Signal Logs](https://v6.docs.ctr-electronics.com/en/stable/docs/tuner/tools/log-extractor.html)
