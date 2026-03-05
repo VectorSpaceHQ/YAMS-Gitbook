@@ -170,6 +170,14 @@ The `SysIdRoutine` requires two objects:
 1. **Config** - Test settings (ramp rate, step voltage, timeout)
 2. **Mechanism** - Callbacks for driving motors and logging data
 
+{% hint style="info" %}
+**Why use duty cycle instead of voltage control?**
+
+Modern motor controllers (SparkMax, SparkFlex, TalonFX, etc.) have internal closed-loop voltage controllers. When you call a "set voltage" API, the motor controller actively adjusts output to maintain that voltage regardless of load or battery sag.
+
+For SysId, we want **raw, uncompensated motor behavior**. By converting voltage to duty cycle (`voltage / batteryVoltage`) and using `setDutyCycle()`, we bypass the internal controller entirely. This produces cleaner data that more accurately represents the true motor and mechanism dynamics.
+{% endhint %}
+
 ```java
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -204,7 +212,9 @@ public class ManualSysIdSubsystem extends SubsystemBase {
           Seconds.of(10)                    // Timeout
       ),
       new SysIdRoutine.Mechanism(
-          // Drive callback - applies voltage to motors
+          // Drive callback - convert voltage to duty cycle
+          // Using duty cycle instead of the motor controller's voltage control
+          // bypasses the internal closed-loop controller, resulting in cleaner data
           (Voltage voltage) -> motor.setDutyCycle(
               voltage.in(Volts) / RobotController.getBatteryVoltage()
           ),
