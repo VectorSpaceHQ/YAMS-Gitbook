@@ -60,7 +60,7 @@ When live tuning, it's important to understand what units each parameter expects
 | Derivative Gain | kD | Volts per Rotation/Second (V/(rot/s)) | Output voltage per unit of velocity error. For linear mechanisms, this is V/(m/s). |
 
 {% hint style="info" %}
-**Position Control**: Error is measured in **Rotations** (mechanism output shaft) or **Meters** (for linear mechanisms with circumference defined).
+**Position Control**: Error is measured in **Rotations** (mechanism output shaft) or **Meters** (for linear mechanisms with linear closed loop controllers set).
 
 **Velocity Control**: Error is measured in **Rotations per Second** or **Meters per Second**.
 {% endhint %}
