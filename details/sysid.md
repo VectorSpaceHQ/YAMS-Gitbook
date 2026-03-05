@@ -420,6 +420,7 @@ For example, if a flywheel is spinning at high speed after a dynamic forward tes
 - For high-inertia mechanisms (heavy arms, large flywheels), use **3+ seconds** or wait until the mechanism has fully stopped
 - Consider adding a `stopMotor` call between tests to actively brake the mechanism
 - If running tests manually with separate button bindings, wait for the mechanism to settle before starting the next test
+- **If momentum is a concern, try reducing the test voltages** - Lower dynamic step voltage (e.g., 4V instead of 7V) means less peak velocity and less residual momentum between tests
 {% endhint %}
 
 For mechanisms with limits (arms, elevators), you can add safety stops:
