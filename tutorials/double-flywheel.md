@@ -22,6 +22,7 @@ A double flywheel is a shooter mechanism with two separate flywheels, typically 
 * **Lower FlyWheel** - Controls the bottom surface of the game piece
 
 By running these at different speeds, you can:
+
 * Add **backspin** for lob shots (upper faster than lower)
 * Add **topspin** for line drive shots (lower faster than upper)
 * Achieve **neutral spin** for consistent shots (equal speeds)
@@ -65,7 +66,7 @@ Click on the **WPILib logo** on the **left** pane. Scroll down to **Yet Another 
 
 {% stepper %}
 {% step %}
-### Create our Subsystem with two `SmartMotorControllerConfig`s
+#### Create our Subsystem with two `SmartMotorControllerConfig`s
 
 We need separate configurations for each flywheel since they will be controlled independently.
 
@@ -143,7 +144,7 @@ public class DoubleFlywheelSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create our motor controllers
+#### Create our motor controllers
 
 Create the vendor motor controller objects for each flywheel.
 
@@ -220,7 +221,7 @@ public class DoubleFlywheelSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create and Configure our `FlyWheel` mechanisms
+#### Create and Configure our `FlyWheel` mechanisms
 
 Each flywheel gets its own `FlyWheel` mechanism for intuitive control.
 
@@ -330,7 +331,7 @@ public class DoubleFlywheelSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create `Command`s for our Double FlyWheel
+#### Create `Command`s for our Double FlyWheel
 
 Now we create command factory methods for different shot types.
 
@@ -517,7 +518,7 @@ public class DoubleFlywheelSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Configure controller bindings in `RobotContainer`
+#### Configure controller bindings in `RobotContainer`
 
 Wire up the controller buttons to our shot types.
 
@@ -610,7 +611,8 @@ You now have a fully functional double flywheel shooter with:
 * Telemetry for tuning both flywheels
 
 The key differences from a single flywheel are:
+
 1. Two separate `SmartMotorControllerConfig` instances
-2. Two separate `SmartMotorController` instances  
+2. Two separate `SmartMotorController` instances
 3. Two separate `FlyWheel` mechanism instances
 4. Commands that coordinate both flywheels using `Commands.parallel()`

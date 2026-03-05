@@ -5,7 +5,7 @@ description: We will learn how to program an Elevator!
 # Elevator
 
 {% hint style="danger" %}
-Mechanism classes are meant to be used with "tightly coupled" mechanisms where the Mechanism has 1 or more motor controlling it on a connected shaft, gearbox, or other linkage.&#x20;
+Mechanism classes are meant to be used with "tightly coupled" mechanisms where the Mechanism has 1 or more motor controlling it on a connected shaft, gearbox, or other linkage.
 
 **IF** your mechanism is "loosely coupled", you **CAN** still use YAMS. **HOWEVER** you have to create and control the `SmartMotorController` directly as shown in [how-do-i-control-a-mechanism-without-a-mechanism-class.md](../how-to/how-do-i-control-a-mechanism-without-a-mechanism-class.md "mention") OR use `SmartMotorControllerConfig.withLooselyCoupledFollowers(SmartMotorController...)`
 {% endhint %}
@@ -16,7 +16,7 @@ At the end of this tutorial you will have an `Elevator` that will work in both r
 
 {% columns %}
 {% column %}
-### Simulation
+#### Simulation
 
 <figure><img src="../.gitbook/assets/Robot Simulation 2025-08-30 18-27-07.gif" alt=""><figcaption></figcaption></figure>
 
@@ -24,7 +24,7 @@ At the end of this tutorial you will have an `Elevator` that will work in both r
 {% endcolumn %}
 
 {% column %}
-### Real Life
+#### Real Life
 
 {% embed url="https://www.youtube.com/shorts/XKmsW8-85Dg" %}
 {% endcolumn %}
@@ -34,8 +34,8 @@ At the end of this tutorial you will have an `Elevator` that will work in both r
 
 This `Elevator` will be using the following hardware specs and control details
 
-* `SparkMax` controlling the `Elevator`&#x20;
-* `12:1` GearBox on the `Elevator`&#x20;
+* `SparkMax` controlling the `Elevator`
+* `12:1` GearBox on the `Elevator`
 * Pressing `A` will make the `Elevator` go to 0.5m
 * Pressing `B` will make the `Elevator` go to 1
 * Pressing `X` will make the `Elevator` go up.
@@ -86,7 +86,7 @@ Congratulations you have now installed YAMS! :tada:
 
 {% stepper %}
 {% step %}
-### Create a `SmartMotorControllerConfig`
+#### Create a `SmartMotorControllerConfig`
 
 We are going to start by configuring out motor controller.
 
@@ -177,7 +177,7 @@ public class ExampleSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create our motor controller
+#### Create our motor controller
 
 To control our `Elevator` motor we will create the vendor motor controller object.
 
@@ -281,7 +281,7 @@ public class ExampleSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create our `SmartMotorController`
+#### Create our `SmartMotorController`
 
 Our `SmartMotorController` will easily configure and interface with the vendor motor controller object.
 
@@ -385,7 +385,7 @@ public class ExampleSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create and Configure our `Elevator`
+#### Create and Configure our `Elevator`
 
 Our `Elevator` will easily configure the `SmartMotorController` and create a simple and intuitive interface.
 
@@ -503,7 +503,7 @@ public class ExampleSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create `Command`s with our `Elevator`
+#### Create `Command`s with our `Elevator`
 
 We use the `Elevator` class as a interface to create commands!
 
@@ -657,7 +657,7 @@ public class ExampleSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Bind buttons to our `Elevator`
+#### Bind buttons to our `Elevator`
 
 We bind buttons to use the `Command` from our `Elevator`
 
@@ -738,7 +738,7 @@ public class RobotContainer {
 {% endstep %}
 
 {% step %}
-### Simulate our Elevator!
+#### Simulate our Elevator!
 
 We can use our `Elevator` in simulation, with the exact same code that will control the real robot!
 

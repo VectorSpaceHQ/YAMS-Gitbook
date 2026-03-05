@@ -6,7 +6,7 @@ icon: simplybuilt
 # EasyCRT
 
 {% hint style="info" %}
-`EasyCRT` was made entirely by Team 6911!&#x20;
+`EasyCRT` was made entirely by Team 6911!
 {% endhint %}
 
 ## Whitepaper
@@ -22,11 +22,11 @@ Team 4967 has made this excellent white paper describing exactly how Chinese Rem
 {% endhint %}
 
 {% hint style="danger" %}
-## Debugging a read failure by 2181
+### Debugging a read failure by 2181
 
 Your defined range will affect your reading.
 
-Check if the result is `AMBIGUOUS` and set your range to have a negative possibility!&#x20;
+Check if the result is `AMBIGUOUS` and set your range to have a negative possibility!
 
 For example, instead of a range from `(0,2)` use `(-1.1,1.1)` that way the range can't easily be exceeded
 
@@ -45,9 +45,9 @@ If your turret/mechanism is slightly out of bounds your CRT reading will be very
 CRT is not the only way to find the absolute angle of your turret and you should choose what is the easiest for you
 
 * A zero sensor (limit switch, magnetic limit switch) and rotating to hit it
-* A 10-turn pot on a reduction&#x20;
+* A 10-turn pot on a reduction
 * An absolute encoder with a 1:1 reduction
-  * Optionally add a slightly less than 1:1 pinon on a second absolute encoder and find how many turns there are algebraically.&#x20;
+  * Optionally add a slightly less than 1:1 pinon on a second absolute encoder and find how many turns there are algebraically.
 
 ## EasyCRT Absolute Encoder Configuration Guide
 

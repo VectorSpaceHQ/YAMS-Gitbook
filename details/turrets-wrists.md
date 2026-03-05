@@ -43,7 +43,7 @@ PivotConfig                m_config         = new PivotConfig(motor)
 
 Starting position is different from an Arm starting position in a Pivot because 0 is arbitrary, in fact there should never be a Feedforward with a kG on a Pivot because that feedforward would take into account the position and assume 0 is parallel to the ground.&#x20;
 
-So the starting position given is something that would only really be useful for simulation and in practice you should have an [absolute encoder attached to your turret or pivot of some kind and have a ZeroOffset applied on the Absolute Encoder](editor.md#external-encoders-are-difficult). You can also use a different vendors absolute encoder and then seed the SmartMotorController with `SmartMotorController.setEncoderPosition`.
+So the starting position given is something that would only really be useful for simulation and in practice you should have an [absolute encoder attached to your turret or pivot of some kind and have a ZeroOffset applied on the Absolute Encoder](editor/#external-encoders-are-difficult). You can also use a different vendors absolute encoder and then seed the SmartMotorController with `SmartMotorController.setEncoderPosition`.
 
 ```java
 PivotConfig m_config = new PivotConfig(motor)
@@ -72,7 +72,7 @@ PivotConfig m_config = new PivotConfig(motor)
 
 ## MOI
 
-The moment of inertia is only used in simulation to estimate the behavior of the Pivot. If you have your MOI similar to the real mechanism than the PID and FF might be similar, however this is unlikely and you will probably have to [set a sim only PID and FF](simulation-only-pid-+-feedforward.md).
+The moment of inertia is only used in simulation to estimate the behavior of the Pivot. If you have your MOI similar to the real mechanism than the PID and FF might be similar, however this is unlikely and you will probably have to [set a sim only PID and FF](editor/simulation-only-pid-+-feedforward.md).
 
 ```java
 PivotConfig m_config = new PivotConfig(motor)

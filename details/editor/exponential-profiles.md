@@ -10,9 +10,9 @@ A motion profile is a trajectory that defines how a mechanism should move from o
 
 Motion profiles output a series of intermediate setpoints (position and velocity) that your closed-loop controller tracks. This results in:
 
-- **Predictable motion** - You know exactly how long a movement will take
-- **Smooth transitions** - No jerky movements that stress mechanical components
-- **Controlled acceleration** - Prevents excessive current draw and brownouts
+* **Predictable motion** - You know exactly how long a movement will take
+* **Smooth transitions** - No jerky movements that stress mechanical components
+* **Controlled acceleration** - Prevents excessive current draw and brownouts
 
 ## Trapezoidal vs Exponential Profiles
 
@@ -32,15 +32,17 @@ Velocity
 ```
 
 **Key characteristics:**
-- Constant acceleration until max velocity is reached
-- Cruise at max velocity (if distance is long enough)
-- Constant deceleration to stop at target
-- Assumes unlimited torque during acceleration phases
+
+* Constant acceleration until max velocity is reached
+* Cruise at max velocity (if distance is long enough)
+* Constant deceleration to stop at target
+* Assumes unlimited torque during acceleration phases
 
 **When trapezoidal profiles struggle:**
-- When a disturbance knocks the mechanism off the profile
-- When the motor cannot actually provide the commanded acceleration
-- When current limiting reduces available torque
+
+* When a disturbance knocks the mechanism off the profile
+* When the motor cannot actually provide the commanded acceleration
+* When current limiting reduces available torque
 
 ### Exponential Profiles
 
@@ -58,10 +60,11 @@ Velocity
 ```
 
 **Key characteristics:**
-- Acceleration naturally decreases as velocity increases (following motor physics)
-- Uses motor kV (velocity constant) and kA (acceleration constant) to model behavior
-- More accurately represents what the motor can actually achieve
-- Better disturbance rejection
+
+* Acceleration naturally decreases as velocity increases (following motor physics)
+* Uses motor kV (velocity constant) and kA (acceleration constant) to model behavior
+* More accurately represents what the motor can actually achieve
+* Better disturbance rejection
 
 {% hint style="info" %}
 Exponential profiles are named for the exponential approach to maximum velocity, which mirrors the natural response of a first-order system like a DC motor.
@@ -76,12 +79,13 @@ The relationship is:
 $$V = kS + kV \cdot \omega + kA \cdot \alpha$$
 
 Where:
-- **V** = Applied voltage
-- **kS** = Static friction voltage (voltage to overcome stiction)
-- **kV** = Velocity constant (volts per unit velocity)
-- **kA** = Acceleration constant (volts per unit acceleration)
-- **ω** = Angular velocity
-- **α** = Angular acceleration
+
+* **V** = Applied voltage
+* **kS** = Static friction voltage (voltage to overcome stiction)
+* **kV** = Velocity constant (volts per unit velocity)
+* **kA** = Acceleration constant (volts per unit acceleration)
+* **ω** = Angular velocity
+* **α** = Angular acceleration
 
 Rearranging for acceleration:
 
@@ -91,15 +95,15 @@ This shows that as velocity (ω) increases, the available acceleration (α) decr
 
 ## When to Use Each Profile Type
 
-| Situation | Recommended Profile | Why |
-|-----------|---------------------|-----|
-| Motor is always current-limited | Trapezoidal | Current limiting makes torque roughly constant regardless of speed |
-| Motor is never current-limited | Exponential | Motor follows natural torque-speed curve |
-| Sometimes current-limited | Hybrid (not yet in YAMS) | See [this whitepaper](https://www.chiefdelphi.com/t/whitepaper-trapezoidal-exponential-motion-profiling/443468/12?u=nstrike) |
-| Heavy mechanism with adequate motor | Exponential | Gravity/friction dominate, exponential handles disturbances better |
-| Lightweight mechanism | Either | Both work well when inertia is low |
-| Mechanism with significant disturbances | Exponential | Better recovery when knocked off profile |
-| Precise timing required | Trapezoidal | Deterministic duration calculation |
+| Situation                               | Recommended Profile      | Why                                                                                                                          |
+| --------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| Motor is always current-limited         | Trapezoidal              | Current limiting makes torque roughly constant regardless of speed                                                           |
+| Motor is never current-limited          | Exponential              | Motor follows natural torque-speed curve                                                                                     |
+| Sometimes current-limited               | Hybrid (not yet in YAMS) | See [this whitepaper](https://www.chiefdelphi.com/t/whitepaper-trapezoidal-exponential-motion-profiling/443468/12?u=nstrike) |
+| Heavy mechanism with adequate motor     | Exponential              | Gravity/friction dominate, exponential handles disturbances better                                                           |
+| Lightweight mechanism                   | Either                   | Both work well when inertia is low                                                                                           |
+| Mechanism with significant disturbances | Exponential              | Better recovery when knocked off profile                                                                                     |
+| Precise timing required                 | Trapezoidal              | Deterministic duration calculation                                                                                           |
 
 {% hint style="success" %}
 **Rule of thumb**: If your mechanism works well with trapezoidal profiles, keep using them. Switch to exponential profiles when you encounter disturbance rejection issues or when you want the profile to better match your motor's capabilities.
@@ -200,24 +204,24 @@ Factory methods use theoretical values. Real mechanisms have friction, cable dra
 
 The maximum voltage determines how aggressively the profile will command the mechanism. Consider:
 
-- **12V** - Full battery voltage, most aggressive
-- **10V** - Leaves headroom for PID corrections
-- **8V** - Conservative, good for testing
+* **12V** - Full battery voltage, most aggressive
+* **10V** - Leaves headroom for PID corrections
+* **8V** - Conservative, good for testing
 
 ### Step 3: Tune PID Gains
 
 With exponential profiles, the feedforward does most of the work. The PID handles:
 
-- **kP** - Corrects position error. Start low (1-5) and increase until responsive
-- **kI** - Usually not needed with good feedforward. Use only if steady-state error persists
-- **kD** - Dampens oscillations. Add if mechanism oscillates around target
+* **kP** - Corrects position error. Start low (1-5) and increase until responsive
+* **kI** - Usually not needed with good feedforward. Use only if steady-state error persists
+* **kD** - Dampens oscillations. Add if mechanism oscillates around target
 
 ### Step 4: Add Feedforward
 
 Even with exponential profiles, you still need feedforward for:
 
-- **Gravity compensation** (arms, elevators) - The profile doesn't know about gravity
-- **Friction compensation** (kS) - Helps overcome stiction
+* **Gravity compensation** (arms, elevators) - The profile doesn't know about gravity
+* **Friction compensation** (kS) - Helps overcome stiction
 
 ```java
 // For an arm
@@ -243,12 +247,12 @@ When using exponential profiles, the profile itself handles the velocity and acc
 
 ## Motor Controller Support
 
-| Motor Controller | Trapezoidal Profile | Exponential Profile | Notes |
-|------------------|---------------------|---------------------|-------|
-| TalonFX (Kraken, Falcon) | On-device (Motion Magic) | On-device (Motion Magic Expo) | Best performance |
-| TalonFXS | On-device (Motion Magic) | On-device (Motion Magic Expo) | Best performance |
-| SparkMax/SparkFlex | On-device (MAXMotion) | RoboRIO | Exponential runs on RoboRIO |
-| Nova | RoboRIO | RoboRIO | All profiles run on RoboRIO |
+| Motor Controller         | Trapezoidal Profile      | Exponential Profile           | Notes                       |
+| ------------------------ | ------------------------ | ----------------------------- | --------------------------- |
+| TalonFX (Kraken, Falcon) | On-device (Motion Magic) | On-device (Motion Magic Expo) | Best performance            |
+| TalonFXS                 | On-device (Motion Magic) | On-device (Motion Magic Expo) | Best performance            |
+| SparkMax/SparkFlex       | On-device (MAXMotion)    | RoboRIO                       | Exponential runs on RoboRIO |
+| Nova                     | RoboRIO                  | RoboRIO                       | All profiles run on RoboRIO |
 
 {% hint style="info" %}
 When exponential profiles run on the RoboRIO, there's slightly more latency compared to on-device execution. However, the profile calculation is still very fast and suitable for most mechanisms.
@@ -258,27 +262,27 @@ When exponential profiles run on the RoboRIO, there's slightly more latency comp
 
 ### Profile is too slow
 
-- Increase maximum voltage
-- Check that your mechanism parameters (mass, length, gearing) are accurate
-- Verify motor type matches actual hardware
+* Increase maximum voltage
+* Check that your mechanism parameters (mass, length, gearing) are accurate
+* Verify motor type matches actual hardware
 
 ### Profile overshoots target
 
-- Decrease kP
-- Add kD for damping
-- Check that kV and kA values aren't underestimated
+* Decrease kP
+* Add kD for damping
+* Check that kV and kA values aren't underestimated
 
 ### Mechanism can't keep up with profile
 
-- Your motor may be undersized for the mechanism
-- Reduce maximum voltage
-- Check for mechanical binding or excessive friction
+* Your motor may be undersized for the mechanism
+* Reduce maximum voltage
+* Check for mechanical binding or excessive friction
 
 ### Profile works in sim but not on real robot
 
-- Run SysId to get real kV and kA values
-- Account for friction with kS in feedforward
-- Check current limits aren't restricting torque
+* Run SysId to get real kV and kA values
+* Account for friction with kS in feedforward
+* Check current limits aren't restricting torque
 
 ## Example: Complete Elevator with Exponential Profile
 
@@ -341,7 +345,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 ## Further Reading
 
-- [CTRE Motion Magic Expo Documentation](https://v6.docs.ctr-electronics.com/en/latest/docs/api-reference/device-specific/talonfx/motion-magic.html#motion-magic-expo) - CTRE's explanation of exponential profiles
-- [How do I use Exponential Profiles?](../how-to/how-do-i-use-exponential-profiles.md) - Quick how-to guide
-- [Trapezoidal/Exponential Motion Profiling Whitepaper](https://www.chiefdelphi.com/t/whitepaper-trapezoidal-exponential-motion-profiling/443468/12?u=nstrike) - Advanced hybrid profiling techniques
-- [WPILib Tuning Guide](https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/tuning-turret.html) - General PID and feedforward tuning
+* [CTRE Motion Magic Expo Documentation](https://v6.docs.ctr-electronics.com/en/latest/docs/api-reference/device-specific/talonfx/motion-magic.html#motion-magic-expo) - CTRE's explanation of exponential profiles
+* [How do I use Exponential Profiles?](../../how-to/how-do-i-use-exponential-profiles.md) - Quick how-to guide
+* [Trapezoidal/Exponential Motion Profiling Whitepaper](https://www.chiefdelphi.com/t/whitepaper-trapezoidal-exponential-motion-profiling/443468/12?u=nstrike) - Advanced hybrid profiling techniques
+* [WPILib Tuning Guide](https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/tuning-turret.html) - General PID and feedforward tuning

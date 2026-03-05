@@ -46,7 +46,7 @@ ElevatorConfig elevconfig = new ElevatorConfig(sparkSmartMotorController)
 
 ## Starting Height
 
-An Elevators starting height is the starting height of the elevator when the robot boots up. This value is translated using the [Mechanism Circumference](../how-to/how-to-find-your-mechanism-circumference.md) to rotations and the encoder of the [SmartMotorController](editor.md) is set to the equivalent Mechanism rotations.
+An Elevators starting height is the starting height of the elevator when the robot boots up. This value is translated using the [Mechanism Circumference](../how-to/how-to-find-your-mechanism-circumference.md) to rotations and the encoder of the [SmartMotorController](editor/) is set to the equivalent Mechanism rotations.
 
 ```java
 ElevatorConfig elevconfig = new ElevatorConfig(sparkSmartMotorController)
@@ -59,7 +59,7 @@ If you want to control your elevators height relative to the ground you should s
 
 ## Mass
 
-The mass defined `.withMass` is used for simulation of the elevator. The mass given should be the carriage weight. Any changes in Mass will require a retuning of the PID and FF, and could necessitate a [sim only PID and FF](simulation-only-pid-+-feedforward.md) to maintain an easy comparison.
+The mass defined `.withMass` is used for simulation of the elevator. The mass given should be the carriage weight. Any changes in Mass will require a retuning of the PID and FF, and could necessitate a [sim only PID and FF](editor/simulation-only-pid-+-feedforward.md) to maintain an easy comparison.
 
 ```java
 ElevatorConfig elevconfig = new ElevatorConfig(sparkSmartMotorController)
@@ -85,7 +85,7 @@ ElevatorConfig elevconfig = new ElevatorConfig(sparkSmartMotorController)
       .withAngle(Degrees.of(0)); // Parallel to the ground, linear slide.
 ```
 
-A linear slide is guaranteed to have a [different sim PID and FF](simulation-only-pid-+-feedforward.md), so be sure to set them!
+A linear slide is guaranteed to have a [different sim PID and FF](editor/simulation-only-pid-+-feedforward.md), so be sure to set them!
 
 ## Hard Limits and Soft Limits
 

@@ -5,7 +5,7 @@ description: We will learn how to program an Arm!
 # Arm
 
 {% hint style="danger" %}
-Mechanism classes are meant to be used with "tightly coupled" mechanisms where the Mechanism has 1 or more motor controlling it on a connected shaft, gearbox, or other linkage.&#x20;
+Mechanism classes are meant to be used with "tightly coupled" mechanisms where the Mechanism has 1 or more motor controlling it on a connected shaft, gearbox, or other linkage.
 
 **IF** your mechanism is "loosely coupled", you **CAN** still use YAMS. **HOWEVER** you have to create and control the `SmartMotorController` directly as shown in [how-do-i-control-a-mechanism-without-a-mechanism-class.md](../how-to/how-do-i-control-a-mechanism-without-a-mechanism-class.md "mention") OR use `SmartMotorControllerConfig.withLooselyCoupledFollowers(SmartMotorController...)`
 {% endhint %}
@@ -16,13 +16,13 @@ At the end of this tutorial you will have an `Arm` that will work in both real l
 
 {% columns %}
 {% column %}
-### Simulation
+#### Simulation
 
 <figure><img src="../.gitbook/assets/arm.gif" alt=""><figcaption></figcaption></figure>
 {% endcolumn %}
 
 {% column %}
-### Real Life
+#### Real Life
 
 {% embed url="https://www.youtube.com/shorts/sKhi0ieo6WE" %}
 {% endcolumn %}
@@ -84,7 +84,7 @@ Congratulations you have now installed YAMS! :tada:
 
 {% stepper %}
 {% step %}
-### Create a `SmartMotorControllerConfig`
+#### Create a `SmartMotorControllerConfig`
 
 We are going to start by configuring out motor controller.
 
@@ -173,7 +173,7 @@ public class ExampleSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create our motor controller
+#### Create our motor controller
 
 To control our `Arm` motor we will create the vendor motor controller object.
 
@@ -274,7 +274,7 @@ public class ExampleSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create our `SmartMotorController`
+#### Create our `SmartMotorController`
 
 Our `SmartMotorController` will easily configure and interface with the vendor motor controller object.
 
@@ -375,7 +375,7 @@ public class ExampleSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create and Configure our `Arm`
+#### Create and Configure our `Arm`
 
 Our `Arm` will easily configure the `SmartMotorController` and create a simple and intuitive interface.
 
@@ -497,7 +497,7 @@ public class ExampleSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Create `Command`s with our `Arm`
+#### Create `Command`s with our `Arm`
 
 We use the `Arm` class as a interface to create commands!
 
@@ -655,7 +655,7 @@ public class ExampleSubsystem extends SubsystemBase {
 {% endstep %}
 
 {% step %}
-### Bind buttons to our `Arm`
+#### Bind buttons to our `Arm`
 
 We bind buttons to use the `Commands` from our `Arm`
 
@@ -736,7 +736,7 @@ public class RobotContainer {
 {% endstep %}
 
 {% step %}
-### Simulate our Arm!
+#### Simulate our Arm!
 
 We can use our `Arm` in simulation, with the exact same code that will control the real robot!
 
