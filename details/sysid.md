@@ -56,8 +56,8 @@ Running a "backwards" test directly after a "forwards" test is generally advisab
 YAMS provides built-in `sysId()` methods on mechanism classes (`Arm`, `Elevator`, `Shooter`, etc.) that simplify the entire process.
 
 {% hint style="danger" %}
-This section covers SysId with Spark or Nova Motor Controllers.
-The methodology for TalonFX and TalonFXS is slightly different.
+This section covers SysId with REV Spark or ThriftyNova Motor Controllers.
+For CTRE TalonFX and TalonFXS, see the [CTRE SysId with Signal Logger](#ctre-sysid-with-signal-logger) section below.
 {% endhint %}
 
 ### Prerequisites
@@ -506,9 +506,145 @@ Remember to also set `.withSimFeedforward()` with the same or similar values for
 
 Both approaches produce compatible log files that work with the WPILib SysId analysis tool.
 
+---
+
+## CTRE SysId with Signal Logger
+
+When using CTRE motor controllers (TalonFX, TalonFXS), YAMS leverages the **Phoenix 6 Signal Logger** instead of WPILib's DataLog. This provides several advantages:
+
+- Eliminates CAN latency issues
+- Supports signals faster than the 20ms main robot loop
+- Avoids Java garbage collection pauses affecting log quality
+
+{% embed url="https://v6.docs.ctr-electronics.com/en/stable/docs/api-reference/wpilib-integration/sysid-integration/plumbing-and-running-sysid.html" %}
+
+### How YAMS Uses Signal Logger
+
+When you call `mechanism.sysId()` with a CTRE motor controller, YAMS automatically:
+
+1. Configures the `SysIdRoutine` to log state using `SignalLogger.writeString()`
+2. Sets the log callback to `null` (Signal Logger captures all signals automatically)
+3. Uses `VoltageOut` control requests to apply voltage during tests
+
+The resulting routine looks like this internally:
+
+```java
+import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.controls.VoltageOut;
+
+private final TalonFX motor = new TalonFX(0);
+private final VoltageOut voltageRequest = new VoltageOut(0.0);
+
+private final SysIdRoutine sysIdRoutine = new SysIdRoutine(
+    new SysIdRoutine.Config(
+        null,           // Use default ramp rate (1 V/s)
+        Volts.of(4),    // Reduce dynamic step voltage to prevent brownout
+        null,           // Use default timeout (10 s)
+        // Log state with Phoenix SignalLogger
+        (state) -> SignalLogger.writeString("state", state.toString())
+    ),
+    new SysIdRoutine.Mechanism(
+        (volts) -> motor.setControl(voltageRequest.withOutput(volts.in(Volts))),
+        null,  // No log callback - Signal Logger handles this automatically
+        this
+    )
+);
+```
+
+### Running CTRE SysId Tests
+
+You must **manually start and stop the Signal Logger** before and after running tests:
+
+```java
+// In RobotContainer.java
+controller.leftBumper().onTrue(Commands.runOnce(SignalLogger::start));
+controller.rightBumper().onTrue(Commands.runOnce(SignalLogger::stop));
+
+// Bind the four SysId tests
+controller.y().whileTrue(mechanism.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+controller.a().whileTrue(mechanism.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+controller.b().whileTrue(mechanism.sysIdDynamic(SysIdRoutine.Direction.kForward));
+controller.x().whileTrue(mechanism.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+```
+
+{% hint style="warning" %}
+**Important:** Start the Signal Logger **before** running any tests and stop it **after** all four tests are complete. This ensures all test data is captured in a single log file without extraneous data from other robot actions.
+{% endhint %}
+
+### Extracting and Converting CTRE Logs
+
+CTRE logs are saved in the `.hoot` format, which must be converted to `.wpilog` before analysis in SysId.
+
+{% hint style="danger" %}
+**Do not use third-party tools** to convert `.hoot` files. A lossy conversion can impact the quality of SysId analysis, especially in simulation where it may cause SysId to fail entirely.
+{% endhint %}
+
+#### Step 1: Locate the Log File
+
+After running your tests, the `.hoot` log file is stored on the roboRIO at:
+
+```
+/home/lvuser/logs/
+```
+
+You can also find logs on a USB drive if one was connected during testing.
+
+#### Step 2: Extract Using Phoenix Tuner X
+
+1. Open **Phoenix Tuner X**
+2. Connect to your robot
+3. Navigate to **Tools → Extracting Signal Logs**
+4. Select your `.hoot` log file
+5. Choose **WPILOG** as the export format
+6. Save the exported `.wpilog` file
+
+{% embed url="https://v6.docs.ctr-electronics.com/en/stable/docs/tuner/tools/log-extractor.html" %}
+
+#### Step 3: Alternative - Using owlet CLI
+
+You can also use CTRE's `owlet` command-line tool:
+
+```bash
+# Install owlet (if not already installed)
+# Available from CTRE's GitHub releases
+
+# Convert hoot to wpilog
+owlet convert mylog.hoot --format wpilog --output mylog.wpilog
+```
+
+#### Step 4: Load in SysId
+
+1. Open the **SysId** tool (included with WPILib)
+2. In the **Log Loader** pane, load your converted `.wpilog` file
+3. In the **Data Selector**, drag the following signals:
+   - `state` (string) → **Test State** slot
+   - TalonFX `Position` → **Position** slot
+   - TalonFX `Velocity` → **Velocity** slot
+   - TalonFX `MotorVoltage` → **Voltage** slot
+4. Select your analysis type (Simple, Elevator, or Arm)
+5. Click **Load** and review the diagnostics
+
+{% hint style="info" %}
+The Signal Logger automatically captures `Position`, `Velocity`, and `MotorVoltage` signals from your TalonFX motors - you don't need to manually log these values like you would with REV motors.
+{% endhint %}
+
+### CTRE vs REV: Key Differences
+
+| Aspect | CTRE (TalonFX) | REV (SparkMax/Flex) |
+|--------|----------------|---------------------|
+| **Logging** | Phoenix Signal Logger (`.hoot`) | WPILib DataLog (`.wpilog`) |
+| **Log Callback** | `null` (automatic) | Manual logging required |
+| **State Logging** | `SignalLogger.writeString()` | Default WPILib logger |
+| **Conversion** | Requires Tuner X or owlet | Direct `.wpilog` output |
+| **Signal Quality** | Higher (bypasses CAN latency) | Standard (20ms loop) |
+
+---
+
 ## Related Documentation
 
 * [How to run SysId on an Arm](../how-to/how-to-run-sysid-on-a-arm.md)
 * [How to run SysId on an Elevator](../how-to/how-to-run-sysid-on-a-elevator.md)
 * [How do I control a Mechanism without a Mechanism Class?](../how-to/how-do-i-control-a-mechanism-without-a-mechanism-class.md)
 * [WPILib SysId Documentation](https://docs.wpilib.org/en/stable/docs/software/advanced-controls/system-identification/index.html)
+* [CTRE Phoenix 6 SysId Integration](https://v6.docs.ctr-electronics.com/en/stable/docs/api-reference/wpilib-integration/sysid-integration/index.html)
+* [CTRE Extracting Signal Logs](https://v6.docs.ctr-electronics.com/en/stable/docs/tuner/tools/log-extractor.html)
