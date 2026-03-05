@@ -35,55 +35,6 @@ icon: chart-line
 - **Quick prototyping** where tuning time is limited
 - **Mechanisms with significant nonlinearities** that LQR's linear model can't capture
 
-## How LQR Works
-
-### The State-Space Model
-
-LQR operates on a state-space representation of your system:
-
-```
-x' = Ax + Bu
-y  = Cx + Du
-```
-
-Where:
-- **x** = state vector (typically [position, velocity])
-- **u** = control input (voltage)
-- **A** = system dynamics matrix
-- **B** = input matrix
-- **C** = output matrix
-- **D** = feedthrough matrix
-
-For a DC motor-driven mechanism, YAMS automatically constructs these matrices from:
-- Motor characteristics (`DCMotor`)
-- Gearing ratio
-- Moment of inertia or mass
-- Number of motors
-
-### The Cost Function
-
-LQR minimizes a cost function:
-
-$$J = \int_0^\infty (x^T Q x + u^T R u) \, dt$$
-
-Where:
-- **Q** = state cost matrix (how much you penalize position and velocity errors)
-- **R** = control cost matrix (how much you penalize control effort/voltage)
-
-**Intuition**:
-- **Higher Q values** = more aggressive error correction (faster response, more overshoot)
-- **Higher R values** = gentler control (slower response, less overshoot, lower power consumption)
-
-### The Solution
-
-The LQR algorithm solves the algebraic Riccati equation to find the optimal gain matrix **K** such that:
-
-```
-u = -Kx
-```
-
-This gain matrix is computed once (not iteratively) and provides optimal feedback gains.
-
 ## LQR Execution in YAMS
 
 {% hint style="warning" %}
@@ -96,7 +47,8 @@ Motor controller vendors (CTRE, REV, ThriftyBot) implement PID controllers on th
 
 1. Matrix operations (solving Riccati equations)
 2. State-space model storage
-3. Multi-state feedback computation
+3. Kalman filter state estimation
+4. Multi-state feedback computation
 
 These operations are beyond what current motor controller firmware supports.
 
@@ -115,133 +67,197 @@ For most FRC mechanisms (arms, elevators), the 50Hz update rate is sufficient. L
 
 ## Configuring LQR in YAMS
 
-### Basic LQR Configuration
+In YAMS, you create an `LQRConfig` to specify your mechanism type and tuning parameters, then create an `LQRController` from that config, and finally pass it to `SmartMotorControllerConfig.withClosedLoopController()`.
+
+### LQRConfig Overview
+
+`LQRConfig` requires three core parameters:
+- **DCMotor**: The motor model (e.g., `DCMotor.getKrakenX60(1)`)
+- **MechanismGearing**: Your gear reduction
+- **MomentOfInertia**: The rotational inertia of your mechanism
+
+Then you specify the mechanism type with one of:
+- `.withFlyWheel()` - For velocity-controlled flywheels
+- `.withArm()` - For position-controlled arms
+- `.withElevator()` - For position-controlled elevators
+
+### Flywheel LQR Configuration
+
+Flywheels use a single-state model (velocity only):
 
 ```java
-SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
-    .withControlMode(ControlMode.CLOSED_LOOP)
-    .withGearing(new MechanismGearing(GearBox.fromReductionStages(100))) // 100:1 reduction
-    .withMomentOfInertia(Inches.of(18), Pounds.of(15)) // Arm length and mass
-    .withLQRController(
-        VecBuilder.fill(0.1, 1.0),  // Q: [position error cost, velocity error cost]
-        VecBuilder.fill(12.0)       // R: [voltage cost]
+LQRConfig flywheelLQRConfig = new LQRConfig(
+        DCMotor.getKrakenX60(1),                           // Motor
+        new MechanismGearing(GearBox.fromReductionStages(2)), // Gearing
+        KilogramSquareMeters.of(0.005)                     // Moment of inertia
     )
-    .withIdleMode(MotorMode.BRAKE)
-    .withTelemetry("LQRArmMotor", TelemetryVerbosity.HIGH);
+    .withFlyWheel(
+        RadiansPerSecond.of(1.0),    // qelms: Velocity error tolerance (rad/s)
+        RadiansPerSecond.of(0.01),   // modelTrust: Model standard deviation
+        RadiansPerSecond.of(0.1)     // encoderTrust: Encoder standard deviation
+    )
+    .withControlEffort(Volts.of(12))  // R: Control effort tolerance
+    .withMaxVoltage(Volts.of(12));    // Maximum output voltage
+
+LQRController flywheelLQR = new LQRController(flywheelLQRConfig);
 ```
 
-### Understanding Q and R Matrices
+**Parameter Explanation**:
+| Parameter | Unit | Description |
+|-----------|------|-------------|
+| `qelms` (velocity) | RadiansPerSecond | Velocity error tolerance. **Decrease** to penalize velocity errors more heavily (more aggressive). |
+| `modelTrust` | RadiansPerSecond | Standard deviation of your model. **Lower** = trust the model more. |
+| `encoderTrust` | RadiansPerSecond | Standard deviation of encoder readings. **Lower** = trust encoder more. |
+| `controlEffort` | Volts | How much to penalize voltage usage. **Increase** for gentler control. |
 
-#### Q Matrix (State Costs)
+### Arm LQR Configuration
 
-The Q matrix penalizes state errors. For a position-velocity state:
+Arms use a two-state model (position and velocity):
 
 ```java
-VecBuilder.fill(qPosition, qVelocity)
+LQRConfig armLQRConfig = new LQRConfig(
+        DCMotor.getKrakenX60(1),
+        new MechanismGearing(GearBox.fromReductionStages(100)),
+        KilogramSquareMeters.of(0.5)  // Arm moment of inertia
+    )
+    .withArm(
+        Radians.of(0.1),              // qelmsPosition: Position error tolerance
+        RadiansPerSecond.of(1.0),     // qelmsVelocity: Velocity error tolerance
+        Radians.of(0.01),             // modelPositionTrust: Model position std dev
+        RadiansPerSecond.of(0.1),     // modelVelocityTrust: Model velocity std dev
+        Radians.of(0.01)              // encoderPositionTrust: Encoder position std dev
+    )
+    .withControlEffort(Volts.of(12))
+    .withMaxVoltage(Volts.of(12));
+
+LQRController armLQR = new LQRController(armLQRConfig);
 ```
 
-| Parameter | Effect of Increasing |
-|-----------|---------------------|
-| `qPosition` | Faster position correction, more aggressive |
-| `qVelocity` | Penalizes velocity error, smoother velocity tracking |
+**Parameter Explanation**:
+| Parameter | Unit | Description |
+|-----------|------|-------------|
+| `qelmsPosition` | Radians | Position error tolerance. **Decrease** for faster position correction. |
+| `qelmsVelocity` | RadiansPerSecond | Velocity error tolerance. **Decrease** for smoother velocity tracking. |
+| `modelPositionTrust` | Radians | Model position uncertainty. |
+| `modelVelocityTrust` | RadiansPerSecond | Model velocity uncertainty. |
+| `encoderPositionTrust` | Radians | Encoder measurement uncertainty. |
 
-**Typical Starting Values**:
-- Position: `0.1` to `1.0` (in mechanism units squared, e.g., radians^2)
-- Velocity: `1.0` to `10.0` (in mechanism units/second squared)
+### Elevator LQR Configuration
 
-#### R Matrix (Control Cost)
-
-The R matrix penalizes control effort:
+Elevators use a two-state linear model (position and velocity in meters):
 
 ```java
-VecBuilder.fill(rVoltage)
+LQRConfig elevatorLQRConfig = new LQRConfig(
+        DCMotor.getKrakenX60(2),                              // 2 motors
+        new MechanismGearing(GearBox.fromReductionStages(10)), // 10:1 reduction
+        KilogramSquareMeters.of(0.01)                         // MOI (used for plant creation)
+    )
+    .withElevator(
+        Meters.of(0.02),              // qelmsPosition: Position error tolerance (m)
+        MetersPerSecond.of(0.5),      // qelmsVelocity: Velocity error tolerance (m/s)
+        Meters.of(0.005),             // modelPositionTrust: Model position std dev
+        MetersPerSecond.of(0.1),      // modelVelocityTrust: Model velocity std dev
+        Meters.of(0.001),             // encoderPositionTrust: Encoder position std dev
+        Kilograms.of(5),              // mass: Carriage mass
+        Inches.of(1)                  // drumRadius: Spool/drum radius
+    )
+    .withControlEffort(Volts.of(12))
+    .withMaxVoltage(Volts.of(12));
+
+LQRController elevatorLQR = new LQRController(elevatorLQRConfig);
 ```
 
-| Parameter | Effect of Increasing |
-|-----------|---------------------|
-| `rVoltage` | Gentler control, slower response, less power |
+**Elevator-Specific Parameters**:
+| Parameter | Unit | Description |
+|-----------|------|-------------|
+| `mass` | Kilograms | Total mass of the elevator carriage and load. |
+| `drumRadius` | Meters/Inches | Radius of the spool or drum that the belt/rope wraps around. |
 
-**Typical Starting Values**:
-- Voltage: `12.0` (using nominal battery voltage as reference)
+## Using LQRController with SmartMotorControllerConfig
 
-### Tuning Strategy
-
-1. **Start Conservative**: Begin with high R (e.g., 12.0) and moderate Q values
-2. **Increase Responsiveness**: Lower R or increase Q position cost
-3. **Reduce Oscillation**: Increase R or increase Q velocity cost
-4. **Validate in Sim**: Always test in simulation before the real robot
+Once you have an `LQRController`, pass it to `withClosedLoopController()`:
 
 ```java
-// Conservative start
-.withLQRController(VecBuilder.fill(0.1, 1.0), VecBuilder.fill(12.0))
+// Create the LQR config and controller
+LQRConfig lqrConfig = new LQRConfig(
+        DCMotor.getKrakenX60(1),
+        new MechanismGearing(GearBox.fromReductionStages(100)),
+        KilogramSquareMeters.of(0.5)
+    )
+    .withArm(
+        Radians.of(0.1),
+        RadiansPerSecond.of(1.0),
+        Radians.of(0.01),
+        RadiansPerSecond.of(0.1),
+        Radians.of(0.01)
+    )
+    .withControlEffort(Volts.of(12));
 
-// More aggressive
-.withLQRController(VecBuilder.fill(1.0, 2.0), VecBuilder.fill(6.0))
+LQRController lqrController = new LQRController(lqrConfig);
 
-// Very aggressive (use with caution)
-.withLQRController(VecBuilder.fill(2.0, 5.0), VecBuilder.fill(3.0))
-```
-
-## LQR with Motion Profiles
-
-LQR can be combined with motion profiles for smooth trajectory following:
-
-```java
+// Pass to SmartMotorControllerConfig
 SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
     .withControlMode(ControlMode.CLOSED_LOOP)
     .withGearing(new MechanismGearing(GearBox.fromReductionStages(100)))
-    .withMomentOfInertia(Inches.of(18), Pounds.of(15))
-    .withLQRController(
-        VecBuilder.fill(0.5, 2.0),
-        VecBuilder.fill(12.0),
-        DegreesPerSecond.of(180),           // Max velocity
-        DegreesPerSecondPerSecond.of(360)   // Max acceleration
-    )
-    .withFeedforward(new ArmFeedforward(0, 0.5, 0, 0))
+    .withMomentOfInertia(Inches.of(24), Pounds.of(12))
+    .withClosedLoopController(lqrController)  // Pass the LQRController here
+    .withFeedforward(new ArmFeedforward(0.1, 0.45, 1.2, 0.05))
     .withIdleMode(MotorMode.BRAKE)
-    .withTelemetry("ProfiledLQRArm", TelemetryVerbosity.HIGH);
+    .withTelemetry("LQRArm", TelemetryVerbosity.HIGH);
 ```
 
-The motion profile generates smooth setpoints, and LQR tracks those setpoints optimally.
+## Advanced LQR Options
 
-## LQR with Feedforward
+### Aggressiveness
 
-**Always combine LQR with appropriate feedforward** for best results:
+Use `withAggressiveness()` to scale overall controller response:
 
 ```java
-// For arms
-.withLQRController(VecBuilder.fill(0.5, 2.0), VecBuilder.fill(12.0))
-.withFeedforward(new ArmFeedforward(kS, kG, kV, kA))
-
-// For elevators
-.withLQRController(VecBuilder.fill(0.5, 2.0), VecBuilder.fill(12.0))
-.withFeedforward(new ElevatorFeedforward(kS, kG, kV, kA))
-
-// For flywheels (velocity control)
-.withLQRController(VecBuilder.fill(1.0), VecBuilder.fill(12.0)) // Single state for velocity
-.withFeedforward(new SimpleMotorFeedforward(kS, kV, kA))
+LQRConfig config = new LQRConfig(motor, gearing, moi)
+    .withArm(...)
+    .withAggressiveness(10.0);  // Higher = more aggressive, typical range 1-20
 ```
 
-{% hint style="success" %}
-Feedforward handles the predictable physics (gravity, friction, inertia), while LQR handles the unpredictable disturbances and errors.
-{% endhint %}
+### Measurement Delay Compensation
+
+If your sensors have significant latency, compensate with:
+
+```java
+LQRConfig config = new LQRConfig(motor, gearing, moi)
+    .withArm(...)
+    .withMeasurementDelay(Milliseconds.of(25));  // Compensate for 25ms delay
+```
+
+### Custom Loop Period
+
+By default, LQR uses a 20ms (50Hz) loop period. Override if using a faster loop:
+
+```java
+// LQRConfig uses the period internally for discrete-time calculations
+// The period should match your actual control loop rate
+```
 
 ## Simulation-Only LQR
 
 You can use different controllers for simulation and real robot:
 
 ```java
+// Create simulation LQR
+LQRConfig simLqrConfig = new LQRConfig(DCMotor.getKrakenX60(1), gearing, moi)
+    .withArm(Radians.of(0.1), RadiansPerSecond.of(1.0), 
+             Radians.of(0.01), RadiansPerSecond.of(0.1), Radians.of(0.01))
+    .withControlEffort(Volts.of(12));
+
+LQRController simLqr = new LQRController(simLqrConfig);
+
 SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
     .withControlMode(ControlMode.CLOSED_LOOP)
-    .withGearing(new MechanismGearing(GearBox.fromReductionStages(100)))
-    .withMomentOfInertia(Inches.of(18), Pounds.of(15))
-    // Real robot uses PID
+    .withGearing(gearing)
+    .withMomentOfInertia(Inches.of(24), Pounds.of(12))
+    // Real robot uses PID (runs on motor controller)
     .withClosedLoopController(5.0, 0, 0.5)
     // Simulation uses LQR for validation
-    .withSimLQRController(
-        VecBuilder.fill(0.5, 2.0),
-        VecBuilder.fill(12.0)
-    )
+    .withSimClosedLoopController(simLqr)
     .withIdleMode(MotorMode.BRAKE);
 ```
 
@@ -260,16 +276,32 @@ public class LQRArmSubsystem extends SubsystemBase {
     public LQRArmSubsystem() {
         TalonFX talonFX = new TalonFX(1);
         
+        // Define mechanism parameters
+        DCMotor dcMotor = DCMotor.getKrakenX60(1);
+        MechanismGearing gearing = new MechanismGearing(GearBox.fromReductionStages(100));
+        MomentOfInertia moi = KilogramSquareMeters.of(0.5);
+        
+        // Create LQR configuration
+        LQRConfig lqrConfig = new LQRConfig(dcMotor, gearing, moi)
+            .withArm(
+                Radians.of(0.05),             // Tight position tolerance
+                RadiansPerSecond.of(0.5),     // Moderate velocity tolerance
+                Radians.of(0.01),             // Trust the model
+                RadiansPerSecond.of(0.1),
+                Radians.of(0.005)             // Trust the encoder
+            )
+            .withControlEffort(Volts.of(10)) // Slightly aggressive
+            .withMaxVoltage(Volts.of(12));
+        
+        // Create the LQR controller
+        LQRController lqrController = new LQRController(lqrConfig);
+        
+        // Create motor controller config
         SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
             .withControlMode(ControlMode.CLOSED_LOOP)
-            .withGearing(new MechanismGearing(GearBox.fromReductionStages(100)))
-            .withMomentOfInertia(Inches.of(24), Pounds.of(12)) // 24" arm, 12 lbs
-            .withLQRController(
-                VecBuilder.fill(0.5, 2.0),  // Q matrix
-                VecBuilder.fill(12.0),      // R matrix
-                DegreesPerSecond.of(120),   // Max velocity
-                DegreesPerSecondPerSecond.of(240) // Max acceleration
-            )
+            .withGearing(gearing)
+            .withMomentOfInertia(Inches.of(24), Pounds.of(12))
+            .withClosedLoopController(lqrController)
             .withFeedforward(new ArmFeedforward(0.1, 0.45, 1.2, 0.05))
             .withAngleSoftLimits(Degrees.of(-10), Degrees.of(110))
             .withClosedLoopTolerance(Degrees.of(1))
@@ -277,25 +309,46 @@ public class LQRArmSubsystem extends SubsystemBase {
             .withStatorCurrentLimit(Amps.of(40))
             .withTelemetry("LQRArm", TelemetryVerbosity.HIGH);
         
-        motor = new TalonFXWrapper(talonFX, DCMotor.getKrakenX60(1), config);
+        motor = new TalonFXWrapper(talonFX, dcMotor, config);
         arm = new Arm(motor);
     }
     
     public Command goToAngle(Angle target) {
         return arm.goTo(() -> target);
     }
-    
-    @Override
-    public void periodic() {
-        // LQR runs here via iterateClosedLoop
-        motor.iterateClosedLoop();
-    }
 }
 ```
 
 {% hint style="danger" %}
-**Critical**: You must call `motor.iterateClosedLoop()` in your periodic method for LQR (and any RoboRIO-side control) to execute. This is handled automatically if you use the `Arm`, `Elevator`, or other mechanism classes.
+**Critical**: LQR runs on the RoboRIO via `SmartMotorController.iterateClosedLoop()`. If you use the `Arm`, `Elevator`, or other mechanism classes, this is handled automatically. If you use `SmartMotorController` directly, you must call `iterateClosedLoop()` in your periodic method.
 {% endhint %}
+
+## Tuning Strategy
+
+### Starting Point
+
+1. **Begin with conservative settings**:
+   - Position qelms: `Radians.of(0.1)` or `Meters.of(0.05)`
+   - Velocity qelms: `RadiansPerSecond.of(1.0)` or `MetersPerSecond.of(0.5)`
+   - Control effort: `Volts.of(12)` (full battery = least aggressive)
+
+2. **Trust values** (standard deviations):
+   - Model trust: Start with small values (0.01) if your model is accurate
+   - Encoder trust: Use values based on your encoder resolution and noise
+
+### Increasing Responsiveness
+
+- **Decrease** position qelms (e.g., `Radians.of(0.1)` → `Radians.of(0.05)`)
+- **Decrease** control effort (e.g., `Volts.of(12)` → `Volts.of(8)`)
+
+### Reducing Oscillation
+
+- **Increase** control effort (e.g., `Volts.of(8)` → `Volts.of(12)`)
+- **Decrease** velocity qelms to penalize velocity errors more
+
+### Always Test in Simulation First
+
+LQR can behave very differently with small parameter changes. Always validate in simulation before testing on the real robot.
 
 ## Troubleshooting LQR
 
@@ -303,8 +356,8 @@ public class LQRArmSubsystem extends SubsystemBase {
 
 **Symptoms**: Mechanism oscillates around setpoint
 **Solutions**:
-- Increase R (control cost) to reduce aggressiveness
-- Increase velocity cost in Q matrix
+- Increase control effort (R) to reduce aggressiveness
+- Decrease velocity qelms to penalize velocity errors
 - Add or increase feedforward kD term
 - Check for mechanical issues (backlash, friction)
 
@@ -312,15 +365,15 @@ public class LQRArmSubsystem extends SubsystemBase {
 
 **Symptoms**: Mechanism responds too slowly to setpoint changes
 **Solutions**:
-- Decrease R (control cost)
-- Increase position cost in Q matrix
+- Decrease control effort (R)
+- Decrease position qelms to penalize position errors more
 - Verify motion profile constraints aren't too conservative
 
 ### Steady-State Error
 
 **Symptoms**: Mechanism doesn't quite reach setpoint
 **Solutions**:
-- Verify feedforward is properly tuned (especially kG for arms, kG for elevators)
+- Verify feedforward is properly tuned (especially kG for arms/elevators)
 - Check that closed loop tolerance isn't too large
 - Ensure model parameters (mass, inertia, gearing) are accurate
 
@@ -338,10 +391,10 @@ public class LQRArmSubsystem extends SubsystemBase {
 | Aspect | PID | LQR |
 |--------|-----|-----|
 | **Tuning Method** | Trial and error | Model-based computation |
-| **Parameters** | kP, kI, kD | Q matrix, R matrix |
+| **Parameters** | kP, kI, kD | Q matrix (qelms), R matrix (control effort) |
 | **States Controlled** | Typically one (position or velocity) | Multiple (position AND velocity) |
 | **Model Required** | No | Yes (motor, gearing, inertia) |
 | **Optimality** | Not guaranteed | Mathematically optimal |
 | **Hardware Support** | Motor controllers | RoboRIO only |
 | **Update Rate** | 1kHz+ (on controller) | 50Hz (RoboRIO) |
-| **Best For** | Simple, fast loops | Complex, model-known systems |
+| **YAMS API** | `withClosedLoopController(kP, kI, kD)` | `withClosedLoopController(LQRController)` |
