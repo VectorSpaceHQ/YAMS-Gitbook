@@ -7,6 +7,8 @@
 * [Arm](tutorials/arm.md)
 * [Elevator](tutorials/elevator.md)
 * [Shooter/FlyWheels](tutorials/shooter-flywheels.md)
+* [Double FlyWheel](tutorials/double-flywheel.md)
+* [Swerve Drive](tutorials/swerve-drive.md)
 
 ## How To
 
@@ -29,6 +31,12 @@
 * [Sensors](details/sensors.md)
 * [Limiting Power Consumption](details/limiting-power-consumption.md)
 * [Smart Motor Controllers](details/editor.md)
+* [Motor Controller Feature Matrix](details/feature-matrix.md)
+* [Exponential Profiles](details/exponential-profiles.md)
+* [LQR Controllers](details/lqr-controllers.md)
+* [run() vs runTo() Commands](details/run-vs-runto.md)
+* [Setpoint Methods vs Command Helpers](details/setpoint-methods.md)
+* [Organizing Configs in Constants](details/config-organization.md)
 * [EasyCRT](details/easycrt.md)
 * [Arms](details/arms.md)
 * [Elevators](details/elevators.md)
@@ -36,3 +44,4 @@
 * [Shooters](details/shooters.md)
 * [Telemetry](details/interactive-blocks.md)
 * [Live Tuning](details/integrations.md)
+* [AdvantageKit Integration](details/advantagekit-integration.md)

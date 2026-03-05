@@ -57,3 +57,101 @@ You may notice there are different colors in the Mechanism windows displayed for
 * Yellow is the lower soft limit
 
 These are provided to you so you can identify relative motion easily between the simulation and reality.
+
+## Telemetry Units
+
+All telemetry values in YAMS are logged with specific units. Understanding these units helps you interpret data correctly and configure your visualization tools.
+
+### Standard Telemetry Units
+
+| Telemetry Field | Unit | Description |
+|-----------------|------|-------------|
+| MechanismPosition | Rotations (rot) | Position of the mechanism output shaft |
+| RotorPosition | Rotations (rot) | Position of the motor rotor (before gearing) |
+| MechanismVelocity | Rotations per Second (rot/s) | Velocity of the mechanism output shaft |
+| RotorVelocity | Rotations per Second (rot/s) | Velocity of the motor rotor |
+| MechanismLowerLimit | Rotations (rot) | Lower soft limit position |
+| MechanismUpperLimit | Rotations (rot) | Upper soft limit position |
+| ClosedLoopTarget | Rotations (rot) or rot/s | Target position or velocity depending on control mode |
+| ClosedLoopError | Rotations (rot) or rot/s | Error from target (same unit as target) |
+| AppliedVoltage | Volts (V) | Voltage currently being applied to the motor |
+| SupplyCurrent | Amps (A) | Current drawn from the battery |
+| StatorCurrent | Amps (A) | Current through the motor windings |
+| Temperature | Celsius (°C) | Motor controller temperature |
+
+### Linear Mechanism Units
+
+When you configure a mechanism with a circumference (using `.withCircumference()`), linear telemetry fields become available:
+
+| Telemetry Field | Unit | Description |
+|-----------------|------|-------------|
+| LinearPosition | Meters (m) | Linear position of the mechanism |
+| LinearVelocity | Meters per Second (m/s) | Linear velocity of the mechanism |
+| LinearLowerLimit | Meters (m) | Lower soft limit in linear units |
+| LinearUpperLimit | Meters (m) | Upper soft limit in linear units |
+
+{% hint style="info" %}
+YAMS logs rotational units by default. Linear units are calculated from rotational units using your configured circumference: `linear = rotational × circumference`
+{% endhint %}
+
+## Using AdvantageScope for Unit Conversion
+
+AdvantageScope provides powerful unit conversion capabilities that let you view telemetry data in whatever units make sense for your analysis—without changing your robot code.
+
+### Changing Display Units
+
+To change how a value is displayed in AdvantageScope:
+
+1. Add the telemetry field to a graph (Line Graph, Discrete, etc.)
+2. Right-click on the field in the legend
+3. Select **"Convert Units..."**
+4. Choose your desired output unit from the list
+
+For example, you can convert:
+- Rotations → Degrees, Radians, or custom mechanism units
+- Rotations per Second → RPM, Degrees per Second, Radians per Second
+- Meters → Inches, Feet, Centimeters
+- Meters per Second → Feet per Second, Inches per Second
+
+### Multiple Units on the Same Axis
+
+AdvantageScope allows you to plot values with **different units on the same axis**, which is incredibly useful for comparing related measurements:
+
+**Example: Comparing Position and Velocity**
+You can plot both `MechanismPosition` (in degrees) and `MechanismVelocity` (in degrees/second) on the same graph to see how velocity changes relative to position during a motion profile.
+
+**Example: Comparing Setpoint vs Actual**
+Plot `ClosedLoopTarget` and `MechanismPosition` with the same unit conversion to directly compare your target trajectory against actual mechanism movement.
+
+**Example: Analyzing Current Draw**
+Plot `SupplyCurrent` and `StatorCurrent` together to understand the relationship between battery load and motor torque output.
+
+### Setting Up Unit Conversion in AdvantageScope
+
+1. **Open Line Graph**: Drag fields from the sidebar to a Line Graph tab
+2. **Access Unit Settings**: Right-click on any field in the graph legend
+3. **Select Convert Units**: Choose the conversion you want
+4. **Apply to Multiple Fields**: Each field can have its own conversion, allowing mixed-unit comparisons
+
+{% hint style="success" %}
+**Pro Tip**: When tuning a mechanism, convert position to your natural units (degrees for arms, inches for elevators) and plot alongside velocity. This helps you visualize how your motion profile executes and identify where the mechanism accelerates, cruises, and decelerates.
+{% endhint %}
+
+### Common Unit Conversions for FRC
+
+| Original Unit | Useful Conversions | Use Case |
+|---------------|-------------------|----------|
+| Rotations | Degrees, Radians | Arm angles, turret position |
+| Rotations | Inches, Centimeters | Elevator height (with circumference) |
+| rot/s | RPM | Flywheel speed |
+| rot/s | deg/s, rad/s | Arm angular velocity |
+| Meters | Inches, Feet | Elevator/linear mechanism position |
+| m/s | ft/s, in/s | Linear mechanism velocity |
+
+### Exporting Data with Units
+
+When exporting data from AdvantageScope, the exported values use the **converted units** you have selected in the display. This makes it easy to:
+
+- Share data with team members in familiar units
+- Import into spreadsheets for further analysis
+- Create documentation with consistent unit conventions
