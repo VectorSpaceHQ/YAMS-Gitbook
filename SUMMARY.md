@@ -34,6 +34,7 @@
 * [Exponential Profiles](details/exponential-profiles.md)
 * [LQR Controllers](details/lqr-controllers.md)
 * [run() vs runTo() Commands](details/run-vs-runto.md)
+* [Setpoint Methods vs Command Helpers](details/setpoint-methods.md)
 * [EasyCRT](details/easycrt.md)
 * [Arms](details/arms.md)
 * [Elevators](details/elevators.md)
