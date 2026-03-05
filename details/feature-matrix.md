@@ -15,6 +15,133 @@ This page provides a comprehensive comparison of supported `SmartMotorController
 | `SparkWrapper` | REV | SparkMax, SparkFlex | `yams.motorcontrollers.local` |
 | `NovaWrapper` | ThriftyBot | ThriftyNova | `yams.motorcontrollers.local` |
 
+## Vendor Configuration Classes
+
+Each wrapper accepts a specific vendor configuration class via `SmartMotorControllerConfig.withVendorConfig()`. This allows you to pass through vendor-specific settings that YAMS doesn't directly expose.
+
+| Wrapper | Accepted Vendor Config Class | Package |
+|---------|------------------------------|---------|
+| `TalonFXWrapper` | `TalonFXConfiguration` | `com.ctre.phoenix6.configs` |
+| `TalonFXSWrapper` | `TalonFXSConfiguration` | `com.ctre.phoenix6.configs` |
+| `SparkWrapper` (SparkMax) | `SparkMaxConfig` | `com.revrobotics.spark.config` |
+| `SparkWrapper` (SparkFlex) | `SparkFlexConfig` | `com.revrobotics.spark.config` |
+| `NovaWrapper` | `ThriftyNovaConfig` | `com.thethriftybot.devices.ThriftyNova` |
+
+{% hint style="warning" %}
+**SparkWrapper Note**: The vendor config class must match the actual hardware. Use `SparkMaxConfig` for `SparkMax` controllers and `SparkFlexConfig` for `SparkFlex` controllers. Using the wrong config type will throw a `SmartMotorControllerConfigurationException`.
+{% endhint %}
+
+### Vendor Config Examples
+
+#### TalonFX with TalonFXConfiguration
+
+```java
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+
+TalonFXConfiguration vendorConfig = new TalonFXConfiguration();
+// Configure vendor-specific settings not exposed by YAMS
+vendorConfig.Audio.BeepOnBoot = false;
+vendorConfig.Audio.BeepOnConfig = false;
+
+SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
+    .withVendorConfig(vendorConfig)  // Must be TalonFXConfiguration
+    .withControlMode(ControlMode.CLOSED_LOOP)
+    .withClosedLoopController(1, 0, 0)
+    // ... other YAMS config
+    ;
+
+SmartMotorController smc = new TalonFXWrapper(talonFX, DCMotor.getKrakenX60(1), config);
+```
+
+#### TalonFXS with TalonFXSConfiguration
+
+```java
+import com.ctre.phoenix6.configs.TalonFXSConfiguration;
+import com.ctre.phoenix6.signals.MotorArrangementValue;
+
+TalonFXSConfiguration vendorConfig = new TalonFXSConfiguration();
+// Note: Motor arrangement is auto-detected by YAMS based on DCMotor type
+// but you can configure other vendor-specific settings here
+
+SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
+    .withVendorConfig(vendorConfig)  // Must be TalonFXSConfiguration
+    .withControlMode(ControlMode.CLOSED_LOOP)
+    .withClosedLoopController(0.5, 0, 0)
+    // ... other YAMS config
+    ;
+
+SmartMotorController smc = new TalonFXSWrapper(talonFXS, DCMotor.getNEO(1), config);
+```
+
+#### SparkMax with SparkMaxConfig
+
+```java
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+
+SparkMaxConfig vendorConfig = new SparkMaxConfig();
+// Configure vendor-specific settings not exposed by YAMS
+vendorConfig.signals.primaryEncoderPositionPeriodMs(10);
+vendorConfig.signals.primaryEncoderVelocityPeriodMs(20);
+
+SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
+    .withVendorConfig(vendorConfig)  // Must be SparkMaxConfig for SparkMax
+    .withControlMode(ControlMode.CLOSED_LOOP)
+    .withClosedLoopController(1, 0, 0)
+    // ... other YAMS config
+    ;
+
+SparkMax sparkMax = new SparkMax(1, MotorType.kBrushless);
+SmartMotorController smc = new SparkWrapper(sparkMax, DCMotor.getNEO(1), config);
+```
+
+#### SparkFlex with SparkFlexConfig
+
+```java
+import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+
+SparkFlexConfig vendorConfig = new SparkFlexConfig();
+// Configure vendor-specific settings not exposed by YAMS
+
+SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
+    .withVendorConfig(vendorConfig)  // Must be SparkFlexConfig for SparkFlex
+    .withControlMode(ControlMode.CLOSED_LOOP)
+    .withClosedLoopController(1, 0, 0)
+    // ... other YAMS config
+    ;
+
+SparkFlex sparkFlex = new SparkFlex(1, MotorType.kBrushless);
+SmartMotorController smc = new SparkWrapper(sparkFlex, DCMotor.getNeoVortex(1), config);
+```
+
+#### ThriftyNova with ThriftyNovaConfig
+
+```java
+import com.thethriftybot.devices.ThriftyNova;
+import com.thethriftybot.devices.ThriftyNova.ThriftyNovaConfig;
+
+ThriftyNovaConfig vendorConfig = new ThriftyNovaConfig();
+// Configure vendor-specific settings not exposed by YAMS
+
+SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
+    .withVendorConfig(vendorConfig)  // Must be ThriftyNovaConfig
+    .withControlMode(ControlMode.CLOSED_LOOP)
+    .withClosedLoopController(0.5, 0, 0)
+    // ... other YAMS config
+    ;
+
+ThriftyNova nova = new ThriftyNova(1);
+SmartMotorController smc = new NovaWrapper(nova, DCMotor.getNEO(1), config);
+```
+
+{% hint style="info" %}
+**Configuration Priority**: Settings in `SmartMotorControllerConfig` always take precedence over vendor config settings. The vendor config is applied first as a base, then YAMS overwrites any settings it manages directly.
+{% endhint %}
+
 ## Feature Support Matrix
 
 ### Legend
