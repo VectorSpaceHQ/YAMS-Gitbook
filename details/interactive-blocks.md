@@ -6,7 +6,21 @@ icon: hand-pointer
 
 ## The basics of telemetry
 
-Every Mechanism has a Tuning table and a display table on the robot. Mechanism tables contain the SmartMotorControllers used in that mechanism.&#x20;
+{% hint style="info" %}
+Using DataLog will increase your storage on the RIO and could have negative consequences. Please review [WPILib ](https://docs.wpilib.org/en/stable/docs/software/telemetry/datalog.html#custom-data-logging-using-datalog)for more information.
+{% endhint %}
+
+By default telemetry is sent to NetworkTables via NT4 entries. This is not the only way telemetry can be logged! If you set a DataLogName inside of `SmartMotorControllerTelemetryConfig` with `SmartMotorControllerTelemetryConfig.withDataLogName(entry)` it will log everything that is sent to NT4 in that log. However this can pollute your telemetry quite alot! We recommend pruning your telemetry so that only things you absolutely want in the file will appear.&#x20;
+
+You can disable NetworkTables logging with `SmartMotorControllerTelemetryConfig.withoutNetworkTable()` !
+
+{% hint style="success" %}
+You should set a DataLogName for competition matches to ensure you have enough data to see what happened on the field and make real time adjustments. This will dramatically improve your season and is very easy to do!
+{% endhint %}
+
+## NetworkTables
+
+Every Mechanism has a Tuning table and a display table on the robot. Mechanism tables contain the SmartMotorControllers used in that mechanism.
 
 All Mechanism tables are stored under `NT:/Mechanisms` NOT `NT:/SmartDashboard` however `NT:/SmartDashboard` does contain some useful Mechanism2d's that can be shown in your dashboard, and commands like "Live Tuning"
 
@@ -49,7 +63,7 @@ SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
 
 ## Colors
 
-You may notice there are different colors in the Mechanism windows displayed for simulation. These are there to provide you with reference points of your Soft and Hard Limits.&#x20;
+You may notice there are different colors in the Mechanism windows displayed for simulation. These are there to provide you with reference points of your Soft and Hard Limits.
 
 * Green is the upper hard limit
 * Red is the lower hard limit
@@ -64,31 +78,31 @@ All telemetry values in YAMS are logged with specific units. Understanding these
 
 ### Standard Telemetry Units
 
-| Telemetry Field | Unit | Description |
-|-----------------|------|-------------|
-| MechanismPosition | Rotations (rot) | Position of the mechanism output shaft |
-| RotorPosition | Rotations (rot) | Position of the motor rotor (before gearing) |
-| MechanismVelocity | Rotations per Second (rot/s) | Velocity of the mechanism output shaft |
-| RotorVelocity | Rotations per Second (rot/s) | Velocity of the motor rotor |
-| MechanismLowerLimit | Rotations (rot) | Lower soft limit position |
-| MechanismUpperLimit | Rotations (rot) | Upper soft limit position |
-| ClosedLoopTarget | Rotations (rot) or rot/s | Target position or velocity depending on control mode |
-| ClosedLoopError | Rotations (rot) or rot/s | Error from target (same unit as target) |
-| AppliedVoltage | Volts (V) | Voltage currently being applied to the motor |
-| SupplyCurrent | Amps (A) | Current drawn from the battery |
-| StatorCurrent | Amps (A) | Current through the motor windings |
-| Temperature | Celsius (°C) | Motor controller temperature |
+| Telemetry Field     | Unit                         | Description                                           |
+| ------------------- | ---------------------------- | ----------------------------------------------------- |
+| MechanismPosition   | Rotations (rot)              | Position of the mechanism output shaft                |
+| RotorPosition       | Rotations (rot)              | Position of the motor rotor (before gearing)          |
+| MechanismVelocity   | Rotations per Second (rot/s) | Velocity of the mechanism output shaft                |
+| RotorVelocity       | Rotations per Second (rot/s) | Velocity of the motor rotor                           |
+| MechanismLowerLimit | Rotations (rot)              | Lower soft limit position                             |
+| MechanismUpperLimit | Rotations (rot)              | Upper soft limit position                             |
+| ClosedLoopTarget    | Rotations (rot) or rot/s     | Target position or velocity depending on control mode |
+| ClosedLoopError     | Rotations (rot) or rot/s     | Error from target (same unit as target)               |
+| AppliedVoltage      | Volts (V)                    | Voltage currently being applied to the motor          |
+| SupplyCurrent       | Amps (A)                     | Current drawn from the battery                        |
+| StatorCurrent       | Amps (A)                     | Current through the motor windings                    |
+| Temperature         | Celsius (°C)                 | Motor controller temperature                          |
 
 ### Linear Mechanism Units
 
 When you configure a mechanism with a circumference (using `.withCircumference()`), linear telemetry fields become available:
 
-| Telemetry Field | Unit | Description |
-|-----------------|------|-------------|
-| LinearPosition | Meters (m) | Linear position of the mechanism |
-| LinearVelocity | Meters per Second (m/s) | Linear velocity of the mechanism |
-| LinearLowerLimit | Meters (m) | Lower soft limit in linear units |
-| LinearUpperLimit | Meters (m) | Upper soft limit in linear units |
+| Telemetry Field  | Unit                    | Description                      |
+| ---------------- | ----------------------- | -------------------------------- |
+| LinearPosition   | Meters (m)              | Linear position of the mechanism |
+| LinearVelocity   | Meters per Second (m/s) | Linear velocity of the mechanism |
+| LinearLowerLimit | Meters (m)              | Lower soft limit in linear units |
+| LinearUpperLimit | Meters (m)              | Upper soft limit in linear units |
 
 {% hint style="info" %}
 YAMS logs rotational units by default. Linear units are calculated from rotational units using your configured circumference: `linear = rotational × circumference`
@@ -108,23 +122,21 @@ To change how a value is displayed in AdvantageScope:
 4. Choose your desired output unit from the list
 
 For example, you can convert:
-- Rotations → Degrees, Radians, or custom mechanism units
-- Rotations per Second → RPM, Degrees per Second, Radians per Second
-- Meters → Inches, Feet, Centimeters
-- Meters per Second → Feet per Second, Inches per Second
+
+* Rotations → Degrees, Radians, or custom mechanism units
+* Rotations per Second → RPM, Degrees per Second, Radians per Second
+* Meters → Inches, Feet, Centimeters
+* Meters per Second → Feet per Second, Inches per Second
 
 ### Multiple Units on the Same Axis
 
 AdvantageScope allows you to plot values with **different units on the same axis**, which is incredibly useful for comparing related measurements:
 
-**Example: Comparing Position and Velocity**
-You can plot both `MechanismPosition` (in degrees) and `MechanismVelocity` (in degrees/second) on the same graph to see how velocity changes relative to position during a motion profile.
+**Example: Comparing Position and Velocity** You can plot both `MechanismPosition` (in degrees) and `MechanismVelocity` (in degrees/second) on the same graph to see how velocity changes relative to position during a motion profile.
 
-**Example: Comparing Setpoint vs Actual**
-Plot `ClosedLoopTarget` and `MechanismPosition` with the same unit conversion to directly compare your target trajectory against actual mechanism movement.
+**Example: Comparing Setpoint vs Actual** Plot `ClosedLoopTarget` and `MechanismPosition` with the same unit conversion to directly compare your target trajectory against actual mechanism movement.
 
-**Example: Analyzing Current Draw**
-Plot `SupplyCurrent` and `StatorCurrent` together to understand the relationship between battery load and motor torque output.
+**Example: Analyzing Current Draw** Plot `SupplyCurrent` and `StatorCurrent` together to understand the relationship between battery load and motor torque output.
 
 ### Setting Up Unit Conversion in AdvantageScope
 
@@ -139,19 +151,19 @@ Plot `SupplyCurrent` and `StatorCurrent` together to understand the relationship
 
 ### Common Unit Conversions for FRC
 
-| Original Unit | Useful Conversions | Use Case |
-|---------------|-------------------|----------|
-| Rotations | Degrees, Radians | Arm angles, turret position |
-| Rotations | Inches, Centimeters | Elevator height (with circumference) |
-| rot/s | RPM | Flywheel speed |
-| rot/s | deg/s, rad/s | Arm angular velocity |
-| Meters | Inches, Feet | Elevator/linear mechanism position |
-| m/s | ft/s, in/s | Linear mechanism velocity |
+| Original Unit | Useful Conversions  | Use Case                             |
+| ------------- | ------------------- | ------------------------------------ |
+| Rotations     | Degrees, Radians    | Arm angles, turret position          |
+| Rotations     | Inches, Centimeters | Elevator height (with circumference) |
+| rot/s         | RPM                 | Flywheel speed                       |
+| rot/s         | deg/s, rad/s        | Arm angular velocity                 |
+| Meters        | Inches, Feet        | Elevator/linear mechanism position   |
+| m/s           | ft/s, in/s          | Linear mechanism velocity            |
 
 ### Exporting Data with Units
 
 When exporting data from AdvantageScope, the exported values use the **converted units** you have selected in the display. This makes it easy to:
 
-- Share data with team members in familiar units
-- Import into spreadsheets for further analysis
-- Create documentation with consistent unit conventions
+* Share data with team members in familiar units
+* Import into spreadsheets for further analysis
+* Create documentation with consistent unit conventions
