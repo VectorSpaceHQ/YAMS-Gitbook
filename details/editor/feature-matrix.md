@@ -171,7 +171,7 @@ SmartMotorController smc = new NovaWrapper(nova, DCMotor.getNEO(1), config);
 | Feature              | TalonFX | TalonFXS | SparkMax/Flex | Nova |
 | -------------------- | ------- | -------- | ------------- | ---- |
 | Stator Current Limit | ✅       | ✅        | ✅             | ✅    |
-| Supply Current Limit | ✅       | ✅        | ✅             | ✅    |
+| Supply Current Limit | ✅       | ✅        | :red\_circle: | ✅    |
 
 ### Voltage Configuration
 
