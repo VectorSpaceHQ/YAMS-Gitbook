@@ -10,10 +10,10 @@ YAMS integrates seamlessly with [AdvantageKit](https://docs.advantagekit.org/), 
 
 [AdvantageKit](https://docs.advantagekit.org/getting-started/what-is-advantagekit) is a logging framework that records **all inputs** to your robot code, enabling deterministic replay in simulation. Unlike traditional logging that captures specific values, AdvantageKit captures everything flowing into your code, allowing you to:
 
-- Replay matches exactly as they happened
-- Add new logged fields after the fact
-- Test code changes against real match data
-- Debug issues that only occurred on the real robot
+* Replay matches exactly as they happened
+* Add new logged fields after the fact
+* Test code changes against real match data
+* Debug issues that only occurred on the real robot
 
 {% hint style="info" %}
 AdvantageKit is optional. YAMS works perfectly without it using its built-in telemetry system. Consider AdvantageKit if you want deterministic log replay capabilities.
@@ -65,10 +65,11 @@ AdvantageKit uses an [IO interface pattern](https://docs.advantagekit.org/data-f
 ```
 
 This means:
-- **One IO class** handles both real robot and simulation
-- **No duplicate code** - configuration is written once
-- **No SimWrapper needed** - real hardware wrappers simulate themselves
-- **Physics are automatic** - based on your DCMotor, gearing, and mass/MOI configuration
+
+* **One IO class** handles both real robot and simulation
+* **No duplicate code** - configuration is written once
+* **No SimWrapper needed** - real hardware wrappers simulate themselves
+* **Physics are automatic** - based on your DCMotor, gearing, and mass/MOI configuration
 
 {% hint style="success" %}
 **Key Insight**: When you create a `TalonFXWrapper`, `SparkWrapper`, `NovaWrapper`, or any YAMS Mechanism, the simulation physics run automatically in sim mode. You write your IO class once using real hardware objects, and YAMS handles the rest.
@@ -587,6 +588,7 @@ public RobotContainer() {
 
 {% hint style="success" %}
 **Summary**: With YAMS + AdvantageKit, you only need **2 IO classes** per mechanism:
+
 1. **One real IO class** (e.g., `ArmIOTalonFX`) - works for both real robot and simulation
 2. **One empty replay IO class** (e.g., `ArmIOReplay`) - for log replay only
 
@@ -604,9 +606,10 @@ The examples above demonstrate the recommended pattern for using YAMS with Advan
 5. **Optionally expose the Mechanism** via a getter for command helpers like `run()` and `runTo()`
 
 This pattern gives you the best of both worlds:
-- **Mechanism classes** provide convenient configuration and command helpers
-- **SmartMotorController** provides detailed telemetry for AdvantageKit logging
-- **Passive simulation** works automatically in both
+
+* **Mechanism classes** provide convenient configuration and command helpers
+* **SmartMotorController** provides detailed telemetry for AdvantageKit logging
+* **Passive simulation** works automatically in both
 
 {% hint style="info" %}
 See the [YAMS example code](https://github.com/Yet-Another-Software-Suite/YAMS/tree/master/examples/simple_robot/src/main/java/frc/robot/subsystems/akit) for complete examples of using YAMS Mechanism classes with AdvantageKit's IO pattern.
@@ -817,8 +820,9 @@ public class SwerveSubsystem extends SubsystemBase {
 During AdvantageKit log replay, **only data inside the `@AutoLog` inputs classes is mutated**. YAMS's built-in telemetry (published via `withTelemetry()`) is NOT affected by replay - it will show live simulation values, not replayed values.
 
 This means:
-- **Inputs you define** (in `SwerveInputs`, `ArmInputs`, etc.) - Replayed correctly
-- **YAMS telemetry** (from `.withTelemetry("Arm")`) - Shows live sim values during replay
+
+* **Inputs you define** (in `SwerveInputs`, `ArmInputs`, etc.) - Replayed correctly
+* **YAMS telemetry** (from `.withTelemetry("Arm")`) - Shows live sim values during replay
 
 To ensure accurate replay debugging, always pull the data you need into your `@AutoLog` inputs class rather than relying on YAMS telemetry during replay.
 {% endhint %}
@@ -845,8 +849,8 @@ public class ArmSubsystem extends SubsystemBase {
   public ArmSubsystem() {
     SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
         .withControlMode(ControlMode.CLOSED_LOOP)
-        .withClosedLoopController(18, 0, 0.2,
-            DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
+        .withClosedLoopController(18, 0, 0.2)
+        .withTrapezoidalProfile(DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
         .withFeedforward(new ArmFeedforward(-0.1, 1.2, 0, 0))
         .withGearing(new MechanismGearing(GearBox.fromReductionStages(12.5, 1)))
         .withIdleMode(MotorMode.BRAKE)
@@ -891,26 +895,26 @@ public class ArmSubsystem extends SubsystemBase {
 
 This pattern is simpler and **does support log replay**, but with a key difference: during replay, the full YAMS simulation runs alongside the logged data. This means:
 
-- **Pro**: You get full simulation behavior during replay, which can help debug physics-related issues
-- **Con**: Replay requires more processing power since every `SmartMotorController` and Mechanism simulates its physics
+* **Pro**: You get full simulation behavior during replay, which can help debug physics-related issues
+* **Con**: Replay requires more processing power since every `SmartMotorController` and Mechanism simulates its physics
 
 Choose the IO layer pattern if you need lightweight replay; choose this direct pattern if you prefer simplicity and don't mind the extra processing during replay.
 
 ## Benefits of YAMS + AdvantageKit
 
-| Feature | Benefit |
-|---------|---------|
-| **No Duplicate IO Classes** | Single IO class works for real robot AND simulation |
-| **Deterministic Replay** | Debug issues from real matches using log replay |
-| **Automatic Physics** | YAMS uses DCMotor, gearing, and mass/MOI for accurate sim |
-| **Less Boilerplate** | 2 IO classes instead of 3 per mechanism |
-| **Consistent Behavior** | Same code paths execute in real and sim modes |
-| **Flexible Hardware** | Swap vendors by changing one IO class |
+| Feature                     | Benefit                                                   |
+| --------------------------- | --------------------------------------------------------- |
+| **No Duplicate IO Classes** | Single IO class works for real robot AND simulation       |
+| **Deterministic Replay**    | Debug issues from real matches using log replay           |
+| **Automatic Physics**       | YAMS uses DCMotor, gearing, and mass/MOI for accurate sim |
+| **Less Boilerplate**        | 2 IO classes instead of 3 per mechanism                   |
+| **Consistent Behavior**     | Same code paths execute in real and sim modes             |
+| **Flexible Hardware**       | Swap vendors by changing one IO class                     |
 
 ## Further Reading
 
-- [AdvantageKit Documentation](https://docs.advantagekit.org/)
-- [What is AdvantageKit?](https://docs.advantagekit.org/getting-started/what-is-advantagekit)
-- [IO Interfaces](https://docs.advantagekit.org/data-flow/recording-inputs/io-interfaces)
-- [Template Projects](https://docs.advantagekit.org/getting-started/template-projects)
-- [YAMS Example Code](https://github.com/Yet-Another-Software-Suite/YAMS/tree/master/examples/simple_robot/src/main/java/frc/robot/subsystems/akit)
+* [AdvantageKit Documentation](https://docs.advantagekit.org/)
+* [What is AdvantageKit?](https://docs.advantagekit.org/getting-started/what-is-advantagekit)
+* [IO Interfaces](https://docs.advantagekit.org/data-flow/recording-inputs/io-interfaces)
+* [Template Projects](https://docs.advantagekit.org/getting-started/template-projects)
+* [YAMS Example Code](https://github.com/Yet-Another-Software-Suite/YAMS/tree/master/examples/simple_robot/src/main/java/frc/robot/subsystems/akit)
