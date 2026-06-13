@@ -83,11 +83,16 @@ ArmConfig armCfg = new ArmConfig(smartMotorController)
 
 ### Starting Position
 
-`Arm.withStartingPosition` is the **ONLY** way to set the starting position for an Arm without an Absolute Encoder. This defines the starting position of your Arm in simulation and will seed the encoder saying the Arm is starting at this angle.&#x20;
+`SmartMotorControllerConfig.withStartingPosition` is the way to set the starting position for an Arm without an Absolute Encoder. This defines the starting position of your Arm in simulation and will seed the encoder saying the Arm is starting at this angle.&#x20;
 
 ```java
-ArmConfig armCfg = new ArmConfig(smartMotorController)
-      .withStartingPosition(Degrees.of(0)); // Parallel to the ground
+SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
+      .withExternalEncoder(armMotor.getAbsoluteEncoder())
+      .withExternalEncoderInverted(true)
+      .withExternalGearing(gearing(gearbox(3, 4)))
+      .withUseExternalFeedbackEncoder(true)
+      .withStartingPosition(Degrees.of(0))
+      .withSimStartingPosition(Degrees.of(0)); // Parallel to the ground
 ```
 
 ### Horizontal Zero
@@ -99,9 +104,6 @@ SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
       .withExternalEncoder(armMotor.getAbsoluteEncoder())
       .withExternalEncoderInverted(true)
       .withExternalGearing(gearing(gearbox(3, 4)))
-      .withUseExternalFeedbackEncoder(true);
-// Create our SmartMotorController from our Spark and config with the NEO.
-SmartMotorController smartMotorController = new SparkWrapper(spark, DCMotor.getNEO(1), motorConfig);
-ArmConfig armCfg = new ArmConfig(smartMotorController)
-      .withHorizontalZero(Degrees.of(15)); // Parallel to the ground at 15deg
+      .withUseExternalFeedbackEncoder(true)
+      .withExternalEncoderZeroOffset(Degrees.of(0));
 ```

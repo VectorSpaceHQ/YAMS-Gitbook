@@ -44,8 +44,8 @@ public class ExampleSubsystem extends SubsystemBase {
   // Mechanism Circumference is the distance traveled by each mechanism rotation converting rotations to meters.
   .withMechanismCircumference(Meters.of(Inches.of(0.25).in(Meters) * 22))
   // Feedback Constants (PID Constants)
-  .withClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
-  .withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+  .withClosedLoopController(4, 0, 0)
+  .withSimClosedLoopController(4, 0, 0)
   // Feedforward Constants
   .withFeedforward(new ElevatorFeedforward(0, 0, 0))
   .withSimFeedforward(new ElevatorFeedforward(0, 0, 0))

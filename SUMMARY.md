@@ -14,8 +14,6 @@
 
 * [How to set an Arm's target Angle?](how-to/how-to-set-an-arms-target-angle.md)
 * [How to set an Elevator's target Height?](how-to/how-to-set-an-elevators-target-height.md)
-* [How to run SysId on a Arm?](how-to/how-to-run-sysid-on-a-arm.md)
-* [How to run SysId on a Elevator?](how-to/how-to-run-sysid-on-a-elevator.md)
 * [How to find your mechanism circumference?](how-to/how-to-find-your-mechanism-circumference.md)
 * [How to shoot with a Shooter?](how-to/how-to-shoot-with-a-shooter.md)
 * [How do I control a Mechanism without a Mechanism Class?](how-to/how-do-i-control-a-mechanism-without-a-mechanism-class.md)
@@ -44,5 +42,4 @@
 * [Setpoint Methods vs Command Helpers](details/setpoint-methods.md)
 * [Telemetry](details/interactive-blocks.md)
 * [Live Tuning](details/integrations.md)
-* [System Identification (SysId)](details/sysid.md)
 * [EasyCRT](details/easycrt.md)

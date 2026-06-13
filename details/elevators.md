@@ -14,8 +14,9 @@ SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
   // Mechanism Circumference is the distance traveled by each mechanism rotation converting rotations to meters.
   .withMechanismCircumference(Meters.of(Inches.of(0.25).in(Meters) * 22))
   // Feedback Constants (PID Constants)
-  .withClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
-  .withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+  .withClosedLoopController(4, 0, 0)
+  .withTrapezoidalProfile(MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+  .withSimClosedLoopController(4, 0, 0)
   // Feedforward Constants
   .withFeedforward(new ElevatorFeedforward(0, 0, 0))
   .withSimFeedforward(new ElevatorFeedforward(0, 0, 0))
@@ -29,7 +30,8 @@ SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
   .withIdleMode(MotorMode.BRAKE)
   .withStatorCurrentLimit(Amps.of(40))
   .withClosedLoopRampRate(Seconds.of(0.25))
-  .withOpenLoopRampRate(Seconds.of(0.25));
+  .withOpenLoopRampRate(Seconds.of(0.25))
+  .withStartingPosition(Meters.of(0.5));// Starting height of the Elevator
 
 // Vendor motor controller object
 SparkMax spark = new SparkMax(4, MotorType.kBrushless);
@@ -38,24 +40,10 @@ SparkMax spark = new SparkMax(4, MotorType.kBrushless);
 SmartMotorController sparkSmartMotorController = new SparkWrapper(spark, DCMotor.getNEO(1), smcConfig);
 
 ElevatorConfig elevconfig = new ElevatorConfig(sparkSmartMotorController)
-      .withStartingHeight(Meters.of(0.5)) // Starting height of the Elevator
       .withHardLimits(Meters.of(0), Meters.of(3)) // Hard limits defined
       .withTelemetry("Elevator", TelemetryVerbosity.HIGH) // Telemetry Name
       .withMass(Pounds.of(16)); // Mass of the carraige
 ```
-
-## Starting Height
-
-An Elevators starting height is the starting height of the elevator when the robot boots up. This value is translated using the [Mechanism Circumference](../how-to/how-to-find-your-mechanism-circumference.md) to rotations and the encoder of the [SmartMotorController](editor/) is set to the equivalent Mechanism rotations.
-
-```java
-ElevatorConfig elevconfig = new ElevatorConfig(sparkSmartMotorController)
-      .withStartingHeight(Meters.of(0.5)) // Starting height of the Elevator
-```
-
-{% hint style="success" %}
-If you want to control your elevators height relative to the ground you should set the starting height to be the height relative to the ground.
-{% endhint %}
 
 ## Mass
 

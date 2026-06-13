@@ -21,7 +21,8 @@ private final MechanismGearing gearing = new MechanismGearing(GearBox.fromReduct
 
 private final SmartMotorControllerConfig motorConfig        = new SmartMotorControllerConfig(this)
       .withMechanismCircumference(circumference)
-      .withClosedLoopController(new ExponentialProfilePIDController(30, 0, 0, 
+      .withClosedLoopController(30, 0, 0)
+      .withExponentialProfile(
       ExponentialProfilePIDController.createElevatorConstraints(
                                      Volts.of(12), // Maximum voltage during profile
                                      motors, // Motors

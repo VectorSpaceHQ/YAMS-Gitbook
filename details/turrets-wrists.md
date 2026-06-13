@@ -16,7 +16,8 @@ From the YAMS examples we have the following as a basic config.
 TalonFXS                   turretMotor = new TalonFXS(1);
 SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
-      .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
+      .withClosedLoopController(4, 0, 0)
+      .withTrapezoidalProfile(DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
       // Configure Motor and Mechanism properties
       .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
       .withIdleMode(MotorMode.BRAKE)
@@ -26,39 +27,17 @@ SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
       // Power Optimization
       .withStatorCurrentLimit(Amps.of(40))
       .withClosedLoopRampRate(Seconds.of(0.25))
-      .withOpenLoopRampRate(Seconds.of(0.25));
+      .withOpenLoopRampRate(Seconds.of(0.25))
+      .withContinuousWrapping(Degrees.of(0), Degrees.of(360))// Wrapping enabled bc the pivot can spin infinitely
+      .withStartingPosition(Degrees.of(0)) // Starting position of the Pivot
+      .withMOI(Meters.of(0.25), Pounds.of(4)); // MOI Calculation
 SmartMotorController       motor       = new TalonFXSWrapper(turretMotor,
                                                              DCMotor.getNEO(1),
                                                              motorConfig);
 
-PivotConfig                m_config         = new PivotConfig(motor)
-      .withStartingPosition(Degrees.of(0)) // Starting position of the Pivot
-      .withWrapping(Degrees.of(0), Degrees.of(360)) // Wrapping enabled bc the pivot can spin infinitely
+PivotConfig                m_config         = new PivotConfig(motor) 
       .withHardLimit(Degrees.of(0), Degrees.of(720)) // Hard limit bc wiring prevents infinite spinning
-      .withTelemetry("PivotExample", TelemetryVerbosity.HIGH) // Telemetry
-      .withMOI(Meters.of(0.25), Pounds.of(4)); // MOI Calculation
-```
-
-## Starting Position
-
-Starting position is different from an Arm starting position in a Pivot because 0 is arbitrary, in fact there should never be a Feedforward with a kG on a Pivot because that feedforward would take into account the position and assume 0 is parallel to the ground.&#x20;
-
-So the starting position given is something that would only really be useful for simulation and in practice you should have an [absolute encoder attached to your turret or pivot of some kind and have a ZeroOffset applied on the Absolute Encoder](editor/#external-encoders-are-difficult). You can also use a different vendors absolute encoder and then seed the SmartMotorController with `SmartMotorController.setEncoderPosition`.
-
-```java
-PivotConfig m_config = new PivotConfig(motor)
-      .withStartingPosition(Degrees.of(0)) // Starting position of the Pivot
-```
-
-## Wrapping
-
-Wrapping is only useful for when your Pivot has an infinite turning mobility. Most pivots do not have this kind of freedom due to wiring or collisions with the frame. However limited mechanisms do, like the azimuth of a swerve module.
-
-The start and end of the wrapping option allows you to define what happens when the motor exceeds each boundary. In the example if you are at 0deg it will set the current position to 360 and start going down. If you are at 360deg it will set the current position to 0 and start going up.
-
-```java
-PivotConfig m_config = new PivotConfig(motor)
-      .withWrapping(Degrees.of(0), Degrees.of(360)) // Wrapping enabled bc the pivot can spin infinitely
+      .withTelemetry("PivotExample", TelemetryVerbosity.HIGH); // Telemetry
 ```
 
 ## Hard Limits

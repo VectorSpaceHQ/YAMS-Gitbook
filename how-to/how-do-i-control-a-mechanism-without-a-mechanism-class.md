@@ -50,7 +50,8 @@ An example of this for an Elevator would be as follows
   // Mechanism Circumference is the distance traveled by each mechanism rotation converting rotations to meters.
   .withMechanismCircumference(drumCircumference)
   // Feedback Constants (PID Constants)
-  .withClosedLoopController(kP, kI, kD, maxVel, maxAccel)
+  .withClosedLoopController(kP, kI, kD)
+  .withTrapezoidalProfile(maxVel, maxAccel)
   // Uncomment below to set sim only values.
   //.withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
   // Feedforward Constants
@@ -73,7 +74,8 @@ An example of this for an Elevator would be as follows
   // Mechanism Circumference is the distance traveled by each mechanism rotation converting rotations to meters.
   .withMechanismCircumference(drumCircumference)
   // Feedback Constants (PID Constants)
-  .withClosedLoopController(kP, kI, kD, maxVel, maxAccel)
+  .withClosedLoopController(kP, kI, kD)
+  .withTrapezoidalProfile(maxVel, maxAccel)
   // Uncomment below to set sim only values.
   //.withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
   // Feedforward Constants

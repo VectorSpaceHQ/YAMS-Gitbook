@@ -9,8 +9,8 @@ In this case you can sense if there is a game piece by the current on the smart 
 <pre class="language-java"><code class="lang-java">  private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
     .withControlMode(ControlMode.CLOSED_LOOP)
     // Feedback Constants (PID Constants)
-    .withClosedLoopController(50, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
-    .withSimClosedLoopController(50, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+    .withClosedLoopController(50, 0, 0)
+    .withSimClosedLoopController(50, 0, 0)
     // Feedforward Constants
     .withFeedforward(new ArmFeedforward(0, 0, 0))
     .withSimFeedforward(new ArmFeedforward(0, 0, 0))

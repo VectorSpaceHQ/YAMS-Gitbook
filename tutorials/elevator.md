@@ -117,8 +117,9 @@ public class ExampleSubsystem extends SubsystemBase {
 </strong><strong>  // Mechanism Circumference is the distance traveled by each mechanism rotation converting rotations to meters.
 </strong><strong>  .withMechanismCircumference(Meters.of(Inches.of(0.25).in(Meters) * 22))
 </strong><strong>  // Feedback Constants (PID Constants)
-</strong><strong>  .withClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
-</strong><strong>  .withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+</strong><strong>  .withClosedLoopController(4, 0, 0)
+</strong><strong>  .withTrapezoidalProfile(MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+</strong><strong>  .withSimClosedLoopController(4, 0, 0)
 </strong><strong>  // Feedforward Constants
 </strong><strong>  .withFeedforward(new ElevatorFeedforward(0, 0, 0))
 </strong><strong>  .withSimFeedforward(new ElevatorFeedforward(0, 0, 0))
@@ -218,8 +219,9 @@ public class ExampleSubsystem extends SubsystemBase {
   // Mechanism Circumference is the distance traveled by each mechanism rotation converting rotations to meters.
   .withMechanismCircumference(Meters.of(Inches.of(0.25).in(Meters) * 22))
   // Feedback Constants (PID Constants)
-  .withClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
-  .withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+  .withClosedLoopController(4, 0, 0)
+  .withTrapezoidalProfile(MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+  .withSimClosedLoopController(4, 0, 0)
   // Feedforward Constants
   .withFeedforward(new ElevatorFeedforward(0, 0, 0))
   .withSimFeedforward(new ElevatorFeedforward(0, 0, 0))
@@ -319,8 +321,9 @@ public class ExampleSubsystem extends SubsystemBase {
   // Mechanism Circumference is the distance traveled by each mechanism rotation converting rotations to meters.
   .withMechanismCircumference(Meters.of(Inches.of(0.25).in(Meters) * 22))
   // Feedback Constants (PID Constants)
-  .withClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
-  .withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+  .withClosedLoopController(4, 0, 0)
+  .withTrapezoidalProfile(MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+  .withSimClosedLoopController(4, 0, 0)
   // Feedforward Constants
   .withFeedforward(new ElevatorFeedforward(0, 0, 0))
   .withSimFeedforward(new ElevatorFeedforward(0, 0, 0))
@@ -427,8 +430,9 @@ public class ExampleSubsystem extends SubsystemBase {
   // Mechanism Circumference is the distance traveled by each mechanism rotation converting rotations to meters.
   .withMechanismCircumference(Meters.of(Inches.of(0.25).in(Meters) * 22))
   // Feedback Constants (PID Constants)
-  .withClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
-  .withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+  .withClosedLoopController(4, 0, 0)
+  .withTrapezoidalProfile(MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+  .withSimClosedLoopController(4, 0, 0)
   // Feedforward Constants
   .withFeedforward(new ElevatorFeedforward(0, 0, 0))
   .withSimFeedforward(new ElevatorFeedforward(0, 0, 0))
@@ -548,8 +552,9 @@ public class ExampleSubsystem extends SubsystemBase {
     // Mechanism Circumference is the distance traveled by each mechanism rotation converting rotations to meters.
     .withMechanismCircumference(Meters.of(Inches.of(0.25).in(Meters) * 22))
     // Feedback Constants (PID Constants)
-    .withClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
-    .withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+    .withClosedLoopController(4, 0, 0)
+    .withTrapezoidalProfile(MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+    .withSimClosedLoopController(4, 0, 0)
     // Feedforward Constants
     .withFeedforward(new ElevatorFeedforward(0, 0, 0))
     .withSimFeedforward(new ElevatorFeedforward(0, 0, 0))
