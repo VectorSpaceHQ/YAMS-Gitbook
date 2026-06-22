@@ -85,8 +85,9 @@ The difference between hard limits and soft limits are ubiquitous among all mech
 Hard limits are the simulation maximum boundaries.
 
 ```java
+SmartMotorControllerConfig config = config.withSoftLimits(Meters.of(0), Meters.of(3)); // Soft limits
+...
 ElevatorConfig elevconfig = new ElevatorConfig(sparkSmartMotorController)
-      .withHardLimits(Meters.of(0), Meters.of(3)) // Hard limits defined
-      .withSoftLimits(Meters.of(0), Meters.of(2.5)); // Limits imposed on the PID controller. 
+      .withHardLimits(Meters.of(0), Meters.of(3)) // Hard limits defined 
 ```
 
