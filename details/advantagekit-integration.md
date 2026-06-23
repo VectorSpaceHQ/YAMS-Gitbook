@@ -111,6 +111,12 @@ public interface ArmIO {
 
   /** Stop the arm motor. */
   default void stop() {}
+
+  /** Update the sim telemetry */
+  default void simIterate() {}
+
+  /** Update the telemtry */
+  default void updateTelemetry() {}
 }
 ```
 
@@ -139,6 +145,12 @@ public interface ElevatorIO {
   default void setTargetHeight(double meters) {}
 
   default void stop() {}
+
+  /** Update the sim telemetry */
+  default void simIterate() {}
+
+  /** Update the telemtry */
+  default void updateTelemetry() {}
 }
 ```
 
@@ -166,6 +178,12 @@ public interface ShooterIO {
   default void setTargetVelocity(double rotationsPerSec) {}
 
   default void stop() {}
+
+  /** Update the sim telemetry */
+  default void simIterate() {}
+
+  /** Update the telemtry */
+  default void updateTelemetry() {}
 }
 ```
 
@@ -263,6 +281,16 @@ public class ArmIOTalonFX implements ArmIO {
   public Arm getArm() {
     return arm;
   }
+
+  @Override
+  public void simIterate() {
+    arm.simIterate();
+  }
+
+  @Override
+  public void updateTelemetry() {
+    arm.updateTelemetry();
+  }
 }
 ```
 
@@ -352,6 +380,16 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   public Elevator getElevator() {
     return elevator;
   }
+
+  @Override
+  public void simIterate() {
+    elevator.simIterate();
+  }
+
+  @Override
+  public void updateTelemetry() {
+    elevator.updateTelemetry();
+  }
 }
 ```
 
@@ -436,6 +474,16 @@ public class ShooterIOTalonFX implements ShooterIO {
   public FlyWheel getFlyWheel() {
     return flywheel;
   }
+
+  @Override
+  public void simIterate() {
+    flywheel.simIterate();
+  }
+
+  @Override
+  public void updateTelemetry() {
+    flywheel.updateTelemetry();
+  }
 }
 ```
 
@@ -467,9 +515,16 @@ public class ArmSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    // Update the arms telemetry
+    io.updateTelemetry();
     // Update and log inputs every cycle
     io.updateInputs(inputs);
     Logger.processInputs("Arm", inputs);
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    io.simIterate();
   }
 
   /**
@@ -505,6 +560,7 @@ public class ArmSubsystem extends SubsystemBase {
   public Command stop() {
     return runOnce(() -> io.stop()).withName("Arm.stop");
   }
+
 }
 ```
 
