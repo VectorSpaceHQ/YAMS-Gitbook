@@ -13,8 +13,9 @@ Writing a motor subsystem from scratch is repetitive and error-prone. A producti
 * Periodic telemetry publishing so you can see what's happening
 * `Mechanism2d` visualizations for AdvantageScope
 * Command factories that respect WPILib's requirement system
-* Soft limits, hard limits, and temperature protection
+* Soft limits, hard limits
 * Separate sim-only tuning paths
+* Invisible simulation from standard classes.
 
 Teams routinely spend days getting a single mechanism working in simulation, only to discover the real robot behaves differently because the sim wasn't accurate enough to tune against. YAMS eliminates that cycle.
 
@@ -90,7 +91,7 @@ YAMS enforces mechanism safety automatically:
 * **Hard limits** are enforced in simulation as physical stops — the mechanism cannot travel past them
 * **Soft limits** are pushed to the motor controller so the closed-loop controller respects them independent of your command logic
 * **Temperature cutoff** stops the motor if the controller overheats
-* **`SmartMotorControllerConfigurationException`** is thrown at construction time if limits are misconfigured (e.g., lower limit greater than upper limit), so misconfigurations surface immediately in testing rather than during a match
+* Custom exceptions are thrown at construction time if limits are misconfigured (e.g., lower limit greater than upper limit), so misconfigurations surface immediately in testing rather than during a match
 
 ## AdvantageKit integration
 
