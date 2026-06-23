@@ -111,6 +111,12 @@ public interface ArmIO {
 
   /** Stop the arm motor. */
   default void stop() {}
+
+  /** Update the sim telemetry */
+  default void simIterate() {}
+
+  /** Update the telemtry */
+  default void updateTelemetry() {}
 }
 ```
 
@@ -139,6 +145,12 @@ public interface ElevatorIO {
   default void setTargetHeight(double meters) {}
 
   default void stop() {}
+
+  /** Update the sim telemetry */
+  default void simIterate() {}
+
+  /** Update the telemtry */
+  default void updateTelemetry() {}
 }
 ```
 
@@ -166,11 +178,30 @@ public interface ShooterIO {
   default void setTargetVelocity(double rotationsPerSec) {}
 
   default void stop() {}
+
+  /** Update the sim telemetry */
+  default void simIterate() {}
+
+  /** Update the telemtry */
+  default void updateTelemetry() {}
 }
 ```
 
 {% hint style="info" %}
 The `@AutoLog` annotation from AdvantageKit generates a class (e.g., `ArmIOInputsAutoLogged`) that handles serialization for log replay. See [AdvantageKit AutoLog documentation](https://docs.advantagekit.org/data-flow/recording-inputs/io-interfaces#autolog) for details.
+
+If the @AutoLog fails to generate the coresponding AutoLogged class, check your build.gradle. In the dependencies section you should have
+
+### Build.gradle
+
+```java
+
+def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
+    annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
+
+```  
+
+Comment or delete out this line 'annotationProcessor wpi.java.deps.wpilibAnnotations()' and clean the project with a .gradle clean (windows) or ./gradlew clean (linux) and then build
 {% endhint %}
 
 ## Step 2: Implement the IO Class
@@ -213,6 +244,7 @@ public class ArmIOTalonFX implements ArmIO {
     SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(subsystem)
         .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 4, 3)))
         .withClosedLoopController(5, 0, 0.1)
+        .withSoftLimits(Rotations.of(-0.25), Rotations.of(0.25))
         .withFeedforward(new ArmFeedforward(0.1, 0.3, 0.5, 0.01))
         .withTrapezoidalProfile(RotationsPerSecond.of(1.0), RotationsPerSecondPerSecond.of(2.0));
     
@@ -224,7 +256,6 @@ public class ArmIOTalonFX implements ArmIO {
         .withLength(Inches.of(18))           // Arm length - used for simulation physics
         .withMass(Pounds.of(5))              // Arm mass - used for simulation physics
         .withHardLimit(Rotations.of(-0.3), Rotations.of(0.3))  // Physical hard stops for sim
-        .withSoftLimits(Rotations.of(-0.25), Rotations.of(0.25))
         .withStartingPosition(Rotations.of(0))
         .withTelemetry("Arm", TelemetryVerbosity.HIGH);
     
@@ -262,6 +293,16 @@ public class ArmIOTalonFX implements ArmIO {
   /** Access the Arm mechanism for command helpers like run() and runTo() */
   public Arm getArm() {
     return arm;
+  }
+
+  @Override
+  public void simIterate() {
+    arm.simIterate();
+  }
+
+  @Override
+  public void updateTelemetry() {
+    arm.updateTelemetry();
   }
 }
 ```
@@ -302,6 +343,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
         .withGearing(new MechanismGearing(GearBox.fromReductionStages(5, 4)))
         .withMechanismCircumference(Inches.of(1.5 * Math.PI))  // Pulley circumference
         .withClosedLoopController(10, 0, 0.5)
+        .withSoftLimits(Meters.of(0.02), Meters.of(1.2))
         .withFeedforward(new ElevatorFeedforward(0.1, 0.2, 0.5, 0.01))
         .withTrapezoidalProfile(MetersPerSecond.of(1.0), MetersPerSecondPerSecond.of(2.0));
     
@@ -313,7 +355,6 @@ public class ElevatorIOTalonFX implements ElevatorIO {
         .withDrumRadius(Inches.of(0.75))         // Drum radius for pulley
         .withMass(Pounds.of(10))                 // Carriage mass - used for simulation physics
         .withHardLimits(Meters.of(0), Meters.of(1.5))  // Physical hard stops for sim
-        .withSoftLimits(Meters.of(0.02), Meters.of(1.2))
         .withStartingHeight(Meters.of(0.5))
         .withTelemetry("Elevator", TelemetryVerbosity.HIGH);
     
@@ -351,6 +392,16 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   /** Access the Elevator mechanism for command helpers like run() and runTo() */
   public Elevator getElevator() {
     return elevator;
+  }
+
+  @Override
+  public void simIterate() {
+    elevator.simIterate();
+  }
+
+  @Override
+  public void updateTelemetry() {
+    elevator.updateTelemetry();
   }
 }
 ```
@@ -390,6 +441,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(subsystem)
         .withGearing(new MechanismGearing(GearBox.fromReductionStages(1)))  // Direct drive
         .withClosedLoopController(0.5, 0, 0)
+        .withSoftLimit(RPM.of(0), RPM.of(6000))  // Velocity soft limits
         .withFeedforward(new SimpleMotorFeedforward(0.1, 0.12, 0.01));
     
     // Step 2: Create SmartMotorController (TalonFXWrapper)
@@ -399,7 +451,6 @@ public class ShooterIOTalonFX implements ShooterIO {
     FlyWheelConfig flywheelConfig = new FlyWheelConfig(smc)
         .withDiameter(Inches.of(4))              // Flywheel diameter
         .withMass(Pounds.of(0.5))                // Flywheel mass - used for simulation physics
-        .withSoftLimit(RPM.of(0), RPM.of(6000))  // Velocity soft limits
         .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
     
     // Step 4: Create FlyWheel mechanism - handles simulation automatically!
@@ -436,6 +487,16 @@ public class ShooterIOTalonFX implements ShooterIO {
   public FlyWheel getFlyWheel() {
     return flywheel;
   }
+
+  @Override
+  public void simIterate() {
+    flywheel.simIterate();
+  }
+
+  @Override
+  public void updateTelemetry() {
+    flywheel.updateTelemetry();
+  }
 }
 ```
 
@@ -467,9 +528,16 @@ public class ArmSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    // Update the arms telemetry
+    io.updateTelemetry();
     // Update and log inputs every cycle
     io.updateInputs(inputs);
     Logger.processInputs("Arm", inputs);
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    io.simIterate();
   }
 
   /**
@@ -505,6 +573,7 @@ public class ArmSubsystem extends SubsystemBase {
   public Command stop() {
     return runOnce(() -> io.stop()).withName("Arm.stop");
   }
+
 }
 ```
 
