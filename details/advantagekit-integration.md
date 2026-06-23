@@ -189,6 +189,19 @@ public interface ShooterIO {
 
 {% hint style="info" %}
 The `@AutoLog` annotation from AdvantageKit generates a class (e.g., `ArmIOInputsAutoLogged`) that handles serialization for log replay. See [AdvantageKit AutoLog documentation](https://docs.advantagekit.org/data-flow/recording-inputs/io-interfaces#autolog) for details.
+
+If the @AutoLog fails to generate the coresponding AutoLogged class, check your build.gradle. In the dependencies section you should have
+
+### Build.gradle
+
+```java
+
+def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
+    annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
+
+```  
+
+Comment or delete out this line 'annotationProcessor wpi.java.deps.wpilibAnnotations()' and clean the project with a .gradle clean (windows) or ./gradlew clean (linux) and then build
 {% endhint %}
 
 ## Step 2: Implement the IO Class
