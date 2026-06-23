@@ -1,6 +1,7 @@
 # Table of contents
 
 * [Welcome](README.md)
+* [Why YAMS?](why-yams.md)
 
 ## Tutorials
 
@@ -12,6 +13,7 @@
 
 ## How To
 
+* [How do I use a vendor hardware config?](how-to/how-do-i-use-a-vendor-hardware-config.md)
 * [How to set an Arm's target Angle?](how-to/how-to-set-an-arms-target-angle.md)
 * [How to set an Elevator's target Height?](how-to/how-to-set-an-elevators-target-height.md)
 * [How to find your mechanism circumference?](how-to/how-to-find-your-mechanism-circumference.md)
@@ -19,14 +21,12 @@
 * [How do I control a Mechanism without a Mechanism Class?](how-to/how-do-i-control-a-mechanism-without-a-mechanism-class.md)
 * [How do I sense activity based off of the current?](how-to/how-do-i-sense-activity-based-off-of-the-current.md)
 * [How do I use a DCMotor that isn't in WPILib?](how-to/how-do-i-use-a-dcmotor-that-isnt-in-wpilib.md)
-* [How do I use a vendor hardware config?](how-to/how-do-i-use-a-vendor-hardware-config.md)
 * [How do I use Exponential Profiles?](how-to/how-do-i-use-exponential-profiles.md)
 * [How do I use absolute encoders on my Arm?](how-to/how-do-i-use-absolute-encoders-on-my-arm.md)
 * [How to disable linear closed loop control?](how-to/how-to-disable-linear-closed-loop-control.md)
 
 ## Details
 
-* [Why YAMS?](details/why-yams.md)
 * [AdvantageKit Integration](details/advantagekit-integration.md)
 * [Organizing Configs in Constants](details/config-organization.md)
 * [Smart Motor Controllers](details/editor/README.md)

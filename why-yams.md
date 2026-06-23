@@ -71,7 +71,7 @@ You can watch closed-loop error, plot signal graphs, and verify your gains in Tu
 
 `TelemetryVerbosity.HIGH` publishes all PID gains, feedforward constants, motion profile constraints, soft limits, and current limits as writable NetworkTable entries. The `Live Tuning` command (visible in Elastic or any NT-aware dashboard) applies those values to the running motor controller in real time.
 
-Changing `kP` from 4 to 6 and seeing the mechanism respond takes seconds, not the minutes a redeploy would cost. See the [Live Tuning](integrations.md) page for a full field-by-field reference.
+Changing `kP` from 4 to 6 and seeing the mechanism respond takes seconds, not the minutes a redeploy would cost. See the [Live Tuning](details/integrations.md) page for a full field-by-field reference.
 
 ## Loop overruns
 
@@ -94,4 +94,4 @@ YAMS enforces mechanism safety automatically:
 
 ## AdvantageKit integration
 
-YAMS publishes telemetry in a layout that works naturally with AdvantageKit's IO layer. See the [AdvantageKit Integration](advantagekit-integration.md) page for patterns that combine YAMS's simulation fidelity with AdvantageKit's logging replay.
+YAMS publishes telemetry in a layout that works naturally with AdvantageKit's IO layer. See the [AdvantageKit Integration](details/advantagekit-integration.md) page for patterns that combine YAMS's simulation fidelity with AdvantageKit's logging replay.

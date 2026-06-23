@@ -10,7 +10,7 @@ icon: hand-pointer
 Using DataLog will increase your storage on the RIO and could have negative consequences. Please review [WPILib ](https://docs.wpilib.org/en/stable/docs/software/telemetry/datalog.html#custom-data-logging-using-datalog)for more information.
 {% endhint %}
 
-By default telemetry is sent to NetworkTables via NT4 entries. This is not the only way telemetry can be logged! If you set a DataLogName inside of `SmartMotorControllerTelemetryConfig` with `SmartMotorControllerTelemetryConfig.withDataLogName(entry)` it will log everything that is sent to NT4 in that log. However this can pollute your telemetry quite alot! We recommend pruning your telemetry so that only things you absolutely want in the file will appear.&#x20;
+By default telemetry is sent to NetworkTables via NT4 entries. This is not the only way telemetry can be logged! If you set a DataLogName inside of `SmartMotorControllerTelemetryConfig` with `SmartMotorControllerTelemetryConfig.withDataLogName(entry)` it will log everything that is sent to NT4 in that log. However this can pollute your telemetry quite alot! We recommend pruning your telemetry so that only things you absolutely want in the file will appear.
 
 You can disable NetworkTables logging with `SmartMotorControllerTelemetryConfig.withoutNetworkTable()` !
 
@@ -26,7 +26,7 @@ All Mechanism tables are stored under `NT:/Mechanisms` NOT `NT:/SmartDashboard` 
 
 The image below has the Telemetry output of an Elevator with the Telemetry name of `Elevator` and the SmartMotorController TelemetryName of `ElevatorMotor`
 
-<figure><img src="../.gitbook/assets/127.0.0.1 — AdvantageScope 9_2_2025 1_06_09 PM (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/127.0.0.1 — AdvantageScope 9_2_2025 1_06_09 PM.png" alt=""><figcaption></figcaption></figure>
 
 ## Simulation vs Reality
 

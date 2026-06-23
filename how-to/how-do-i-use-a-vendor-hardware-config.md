@@ -1,7 +1,3 @@
----
-icon: microchip
----
-
 # How do I use a vendor hardware config?
 
 YAMS configures your motor controller automatically based on your `SmartMotorControllerConfig`. But sometimes you need to reach features that YAMS doesn't expose directly — custom voltage limits, CANivore bus names, status frame rates, or device-specific options only available through the vendor's own configuration object.
